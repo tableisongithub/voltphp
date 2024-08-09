@@ -12,6 +12,11 @@
 
 <body>
     <div id="root"></div>
+    <?php
+    if (isset($script)) {
+        echo $script;
+    }
+    ?>
 </body>
 
 </html>
