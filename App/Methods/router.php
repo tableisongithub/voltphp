@@ -1,5 +1,9 @@
 <?php
 error_reporting(E_ALL & ~E_WARNING);
+// for debugging
+// ini_set('display_errors', 1);
+// ini_set('display_startup_errors', 1);
+// error_reporting(E_ALL);
 class Route
 {
     private $method;
@@ -94,7 +98,6 @@ class Router
     public static $prefixedRoutes = [];
     public static $middleware = [];
     public static $functions = [];
-    public static $handleRequestOnExit = true;
     private static $handlingRequest = false;
     private static $fallback = null;
     /**
@@ -245,7 +248,6 @@ class Router
     public static function handleRequest()
     {
         if (self::$handlingRequest) {
-            echo 'Request already handled';
             return;
         }
         self::$handlingRequest = true;
@@ -332,11 +334,5 @@ class Router
         }
 
         require_once $prefixedRoute ? 'errors/500.php' : 'errors/404.php';
-    }
-    private function __destruct()
-    {
-        if (self::$handleRequestOnExit) {
-            self::handleRequest();
-        }
     }
 }
