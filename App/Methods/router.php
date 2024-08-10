@@ -1,9 +1,10 @@
 <?php
-error_reporting(E_ALL & ~E_WARNING);
-// for debugging
-// ini_set('display_errors', 1);
-// ini_set('display_startup_errors', 1);
-// error_reporting(E_ALL);
+error_reporting(E_ALL & ~E_WARNING); // Suppress warnings for a cleaner output
+// For debugging purposes:
+// ini_set('display_errors', 1); // Enable error display
+// ini_set('display_startup_errors', 1); // Enable startup errors display
+// error_reporting(E_ALL); // Show all errors, including warnings
+
 class Route
 {
     private $method;
@@ -15,9 +16,9 @@ class Route
         $this->uri = $uri;
     }
     /**
-     * Add prefix to the route so that it can be accessed by the prefix in middleware function
+     * Assigns a prefix to the route, allowing middleware to identify and use it.
      * 
-     * @param string $prefix The prefix to be added to the route
+     * @param string $prefix The prefix to be assigned to the route
      * @return void
      */
     public function name($prefix)
@@ -35,8 +36,9 @@ class FunctionClass
     private $function;
 
     /**
-     * Adds a name to the defined function
-     * @param string $name The name of the function
+     * Sets the name for the function to be registered.
+     * 
+     * @param string $name The name to be assigned to the function
      * @return FunctionClass
      */
     public function name($name)
@@ -44,9 +46,11 @@ class FunctionClass
         $this->name = $name;
         return $this;
     }
+
     /**
-     * Adds a function to the defined function
-     * @param string $function The function to be added
+     * Sets the callable function to be registered.
+     * 
+     * @param callable $function The function to be registered
      * @return FunctionClass
      */
     public function function($function)
@@ -54,8 +58,10 @@ class FunctionClass
         $this->function = $function;
         return $this;
     }
+
     /**
-     * Registers the function to the Router
+     * Registers the function with the Router using the defined name.
+     * 
      * @return void
      */
     public function register()
@@ -67,17 +73,21 @@ class FunctionClass
 class Middleware
 {
     private $funcs;
+
     /**
-     * Middleware constructor
-     * @param array $funcs The middleware functions prefix to be executed
+     * Middleware constructor to initialize the middleware functions.
+     * 
+     * @param array $funcs An array of function prefixes that will be executed as middleware
      */
     public function __construct($funcs)
     {
         $this->funcs = $funcs;
     }
+
     /**
-     * Function for code that will be executed only if the middleware functions are successful
-     * @param callable $callbackfunc The callback function that contains the routes
+     * Executes the middleware functions in sequence and then runs the provided callback function.
+     * 
+     * @param callable $callbackfunc The function to be executed if all middleware functions succeed
      * @return void
      */
     public function group($callbackfunc)
@@ -86,12 +96,14 @@ class Middleware
             try {
                 Router::invokeByPrefix($func);
             } catch (Exception $e) {
+                // If any middleware function fails, stop processing and return
                 return;
             }
         }
         call_user_func($callbackfunc);
     }
 }
+
 class Router
 {
     private static $routes = [];
@@ -100,12 +112,14 @@ class Router
     public static $functions = [];
     private static $handlingRequest = false;
     private static $fallback = null;
+
     /**
-     * Registers a route to the Router
-     * @param string $method The HTTP method of the route to be registered (GET, POST, PUT, OPTIONS, DELETE, HEAD, PATCH, CONNECT, TRACE)
-     * @param string $uri The URI of the route to be registered (e.g. /home)
-     * @param string $class The class that contains the function to be executed when the route is accessed
-     * @param string $function The function to be executed when the route is accessed
+     * Registers a route with the specified HTTP method, URI, class, and function.
+     * 
+     * @param string $method The HTTP method for the route (e.g., GET, POST)
+     * @param string $uri The URI pattern for the route
+     * @param string $class The class containing the function to be executed
+     * @param string $function The function to be executed
      * @return Route
      */
     private static function registerRoute($method, $uri, $class, $function): Route
@@ -113,136 +127,161 @@ class Router
         self::$routes[$method][$uri] = compact('class', 'function');
         return new Route($method, $uri);
     }
+
     /**
-     * Registers a GET route to the Router
-     * @param string $uri The URI of the route to be registered (e.g. /home)
-     * @param string $class The class that contains the function to be executed when the route is accessed
-     * @param string $function The function to be executed when the route is accessed
+     * Registers a GET route.
+     * 
+     * @param string $uri The URI pattern for the route
+     * @param string $class The class containing the function to be executed
+     * @param string $function The function to be executed
      * @return Route
      */
     public static function GET($uri, $class, $function): Route
     {
         return self::registerRoute('GET', $uri, $class, $function);
     }
+
     /**
-     * Registers a POST route to the Router
-     * @param string $uri The URI of the route to be registered (e.g. /home)
-     * @param string $class The class that contains the function to be executed when the route is accessed
-     * @param string $function The function to be executed when the route is accessed
+     * Registers a POST route.
+     * 
+     * @param string $uri The URI pattern for the route
+     * @param string $class The class containing the function to be executed
+     * @param string $function The function to be executed
      * @return Route
      */
     public static function POST($uri, $class, $function): Route
     {
         return self::registerRoute('POST', $uri, $class, $function);
     }
+
     /**
-     * Registers a PUT route to the Router
-     * @param string $uri The URI of the route to be registered (e.g. /home)
-     * @param string $class The class that contains the function to be executed when the route is accessed
-     * @param string $function The function to be executed when the route is accessed
+     * Registers a PUT route.
+     * 
+     * @param string $uri The URI pattern for the route
+     * @param string $class The class containing the function to be executed
+     * @param string $function The function to be executed
      * @return Route
      */
     public static function PUT($uri, $class, $function): Route
     {
         return self::registerRoute('PUT', $uri, $class, $function);
     }
+
     /**
-     * Registers a OPTIONS route to the Router
-     * @param string $uri The URI of the route to be registered (e.g. /home)
-     * @param string $class The class that contains the function to be executed when the route is accessed
-     * @param string $function The function to be executed when the route is accessed
+     * Registers an OPTIONS route.
+     * 
+     * @param string $uri The URI pattern for the route
+     * @param string $class The class containing the function to be executed
+     * @param string $function The function to be executed
      * @return Route
      */
     public static function OPTIONS($uri, $class, $function): Route
     {
         return self::registerRoute('OPTIONS', $uri, $class, $function);
     }
+
     /**
-     * Registers a DELETE route to the Router
-     * @param string $uri The URI of the route to be registered (e.g. /home)
-     * @param string $class The class that contains the function to be executed when the route is accessed
-     * @param string $function The function to be executed when the route is accessed
+     * Registers a DELETE route.
+     * 
+     * @param string $uri The URI pattern for the route
+     * @param string $class The class containing the function to be executed
+     * @param string $function The function to be executed
      * @return Route
      */
     public static function DELETE($uri, $class, $function): Route
     {
         return self::registerRoute('DELETE', $uri, $class, $function);
     }
+
     /**
-     * Registers a HEAD route to the Router
-     * @param string $uri The URI of the route to be registered (e.g. /home)
-     * @param string $class The class that contains the function to be executed when the route is accessed
-     * @param string $function The function to be executed when the route is accessed
+     * Registers a HEAD route.
+     * 
+     * @param string $uri The URI pattern for the route
+     * @param string $class The class containing the function to be executed
+     * @param string $function The function to be executed
      * @return Route
      */
     public static function HEAD($uri, $class, $function): Route
     {
         return self::registerRoute('HEAD', $uri, $class, $function);
     }
+
     /**
-     * Registers a PATCH route to the Router
-     * @param string $uri The URI of the route to be registered (e.g. /home)
-     * @param string $class The class that contains the function to be executed when the route is accessed
-     * @param string $function The function to be executed when the route is accessed
+     * Registers a PATCH route.
+     * 
+     * @param string $uri The URI pattern for the route
+     * @param string $class The class containing the function to be executed
+     * @param string $function The function to be executed
      * @return Route
      */
     public static function PATCH($uri, $class, $function): Route
     {
         return self::registerRoute('PATCH', $uri, $class, $function);
     }
+
     /**
-     * Registers a CONNECT route to the Router
-     * @param string $uri The URI of the route to be registered (e.g. /home)
-     * @param string $class The class that contains the function to be executed when the route is accessed
-     * @param string $function The function to be executed when the route is accessed
+     * Registers a CONNECT route.
+     * 
+     * @param string $uri The URI pattern for the route
+     * @param string $class The class containing the function to be executed
+     * @param string $function The function to be executed
      * @return Route
      */
     public static function CONNECT($uri, $class, $function): Route
     {
         return self::registerRoute('CONNECT', $uri, $class, $function);
     }
+
     /**
-     * Registers a TRACE route to the Router
-     * @param string $uri The URI of the route to be registered (e.g. /home)
-     * @param string $class The class that contains the function to be executed when the route is accessed
-     * @param string $function The function to be executed when the route is accessed
+     * Registers a TRACE route.
+     * 
+     * @param string $uri The URI pattern for the route
+     * @param string $class The class containing the function to be executed
+     * @param string $function The function to be executed
      * @return Route
      */
     public static function TRACE($uri, $class, $function): Route
     {
         return self::registerRoute('TRACE', $uri, $class, $function);
     }
+
     /**
-     * Registers a fallback route to the Router
-     * @param string $path The path of the fallback route
-     * @param callable $function The function to be executed when the fallback route is accessed
+     * Sets a fallback route to be executed when no other routes match.
+     * 
+     * @param string $path The path for the fallback route
+     * @param callable $function The function to be executed for the fallback route
      * @return void
      */
-
     public static function fallback($path, $function)
     {
         self::$fallback = compact('path', 'function');
     }
 
     /**
-     * Registers a middleware to the Router
-     * @param array $funcs The middleware functions prefix to be executed
+     * Creates a Middleware instance with the given function prefixes.
+     * 
+     * @param array $funcs An array of function prefixes to be used as middleware
      * @return Middleware
      */
     public static function middleware($funcs)
     {
         return new Middleware($funcs);
     }
+
     /**
-     * Registers a function to the Router
+     * Creates a FunctionClass instance for registering functions with the Router.
+     * 
      * @return FunctionClass
      */
     public static function functionRegister()
     {
         return new FunctionClass();
     }
+
     /**
-     * Handles the request and executes the route. If the route is not found, it will execute the fallback route. If you want to disable auto handling of the request, set Router::$handleRequestOnExit to false
+     * Handles the incoming request, executes the matching route, or falls back to the fallback route if no match is found.
+     * To disable automatic request handling, set Router::$handleRequestOnExit to false.
+     * 
      * @return void
      */
     public static function handleRequest()
@@ -260,14 +299,16 @@ class Router
         } elseif (self::$fallback) {
             call_user_func(self::$fallback['function'], self::$fallback['path']);
         } else {
-            require_once 'errors/404.php';
+            require_once 'errors/404.php'; // Load a 404 error page if no route or fallback is found
         }
     }
+
     /**
-     * Matches a wildcard route
-     * @param string $method The HTTP method of the route to be matched
-     * @param string $uri The URI of the route to be matched
-     * @return array|null
+     * Matches a route with wildcard patterns to the incoming URI.
+     * 
+     * @param string $method The HTTP method of the route
+     * @param string $uri The URI of the incoming request
+     * @return array|null The matched route or null if no match is found
      */
     private static function matchWildcardRoute($method, $uri)
     {
@@ -281,9 +322,11 @@ class Router
         }
         return null;
     }
+
     /**
-     * Executes the route
-     * @param array $route The route to be executed
+     * Executes the route by calling the specified class and function.
+     * 
+     * @param array $route The route containing class and function to be executed
      * @return void
      */
     private static function executeRoute($route)
@@ -292,14 +335,16 @@ class Router
             header('Content-Type: application/json');
             echo json_encode(self::invoke($route['class'], $route['function']));
         } catch (Exception $e) {
-            require_once 'errors/500.php';
+            require_once 'errors/500.php'; // Load a 500 error page if an exception occurs
         }
     }
+
     /**
-     * Invokes the function of the class
-     * @param string $class The class that contains the function to be executed
-     * @param string $function The function to be executed
-     * @return mixed
+     * Instantiates the class and invokes the specified function.
+     * 
+     * @param string $class The class containing the function to be executed
+     * @param string $function The function to be invoked
+     * @return mixed The result of the function execution
      */
     private static function invoke($class, $function)
     {
@@ -309,12 +354,14 @@ class Router
                 return $obj->$function();
             }
         }
-        require_once 'errors/500.php';
+        require_once 'errors/500.php'; // Load a 500 error page if class or method does not exist
     }
+
     /**
-     * Invokes the function by prefix
+     * Invokes a function based on its prefix, checking for prefixed routes if needed.
+     * 
      * @param string $prefix The prefix of the function to be executed
-     * @return mixed
+     * @return mixed The result of the function execution
      */
     public static function invokeByPrefix($prefix)
     {
@@ -333,6 +380,6 @@ class Router
             }
         }
 
-        require_once $prefixedRoute ? 'errors/500.php' : 'errors/404.php';
+        require_once $prefixedRoute ? 'errors/500.php' : 'errors/404.php'; // Load error pages as appropriate
     }
 }
