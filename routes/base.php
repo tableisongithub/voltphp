@@ -1,4 +1,16 @@
 <?php
+class test
+{
+    public function test()
+    {
+        return [
+            'message' => 'Hello World'
+        ];
+    }
+}
+
+Router::get('/test', test::class, 'test');
+
 Router::fallback('/', function ($path) {
     try {
         (new publicRender())->render($path);
