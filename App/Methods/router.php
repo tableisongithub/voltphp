@@ -1,9 +1,4 @@
 <?php
-error_reporting(E_ALL & ~E_WARNING); // Suppress warnings for a cleaner output
-// For debugging purposes:
-// ini_set('display_errors', 1); // Enable error display
-// ini_set('display_startup_errors', 1); // Enable startup errors display
-// error_reporting(E_ALL); // Show all errors, including warnings
 
 class Route
 {
@@ -15,9 +10,10 @@ class Route
         $this->method = $method;
         $this->uri = $uri;
     }
+
     /**
      * Assigns a prefix to the route, allowing middleware to identify and use it.
-     * 
+     *
      * @param string $prefix The prefix to be assigned to the route
      * @return void
      */
@@ -37,7 +33,7 @@ class FunctionClass
 
     /**
      * Sets the name for the function to be registered.
-     * 
+     *
      * @param string $name The name to be assigned to the function
      * @return FunctionClass
      */
@@ -49,11 +45,11 @@ class FunctionClass
 
     /**
      * Sets the callable function to be registered.
-     * 
+     *
      * @param callable $function The function to be registered
      * @return FunctionClass
      */
-    public function function($function)
+    public function function ($function)
     {
         $this->function = $function;
         return $this;
@@ -61,7 +57,7 @@ class FunctionClass
 
     /**
      * Registers the function with the Router using the defined name.
-     * 
+     *
      * @return void
      */
     public function register()
@@ -76,7 +72,7 @@ class Middleware
 
     /**
      * Middleware constructor to initialize the middleware functions.
-     * 
+     *
      * @param array $funcs An array of function prefixes that will be executed as middleware
      */
     public function __construct($funcs)
@@ -86,7 +82,7 @@ class Middleware
 
     /**
      * Executes the middleware functions in sequence and then runs the provided callback function.
-     * 
+     *
      * @param callable $callbackfunc The function to be executed if all middleware functions succeed
      * @return void
      */
@@ -115,7 +111,7 @@ class Router
 
     /**
      * Registers a route with the specified HTTP method, URI, class, and function.
-     * 
+     *
      * @param string $method The HTTP method for the route (e.g., GET, POST)
      * @param string $uri The URI pattern for the route
      * @param string $class The class containing the function to be executed
@@ -130,7 +126,7 @@ class Router
 
     /**
      * Registers a GET route.
-     * 
+     *
      * @param string $uri The URI pattern for the route
      * @param string $class The class containing the function to be executed
      * @param string $function The function to be executed
@@ -143,7 +139,7 @@ class Router
 
     /**
      * Registers a POST route.
-     * 
+     *
      * @param string $uri The URI pattern for the route
      * @param string $class The class containing the function to be executed
      * @param string $function The function to be executed
@@ -156,7 +152,7 @@ class Router
 
     /**
      * Registers a PUT route.
-     * 
+     *
      * @param string $uri The URI pattern for the route
      * @param string $class The class containing the function to be executed
      * @param string $function The function to be executed
@@ -169,7 +165,7 @@ class Router
 
     /**
      * Registers an OPTIONS route.
-     * 
+     *
      * @param string $uri The URI pattern for the route
      * @param string $class The class containing the function to be executed
      * @param string $function The function to be executed
@@ -182,7 +178,7 @@ class Router
 
     /**
      * Registers a DELETE route.
-     * 
+     *
      * @param string $uri The URI pattern for the route
      * @param string $class The class containing the function to be executed
      * @param string $function The function to be executed
@@ -195,7 +191,7 @@ class Router
 
     /**
      * Registers a HEAD route.
-     * 
+     *
      * @param string $uri The URI pattern for the route
      * @param string $class The class containing the function to be executed
      * @param string $function The function to be executed
@@ -208,7 +204,7 @@ class Router
 
     /**
      * Registers a PATCH route.
-     * 
+     *
      * @param string $uri The URI pattern for the route
      * @param string $class The class containing the function to be executed
      * @param string $function The function to be executed
@@ -221,7 +217,7 @@ class Router
 
     /**
      * Registers a CONNECT route.
-     * 
+     *
      * @param string $uri The URI pattern for the route
      * @param string $class The class containing the function to be executed
      * @param string $function The function to be executed
@@ -234,7 +230,7 @@ class Router
 
     /**
      * Registers a TRACE route.
-     * 
+     *
      * @param string $uri The URI pattern for the route
      * @param string $class The class containing the function to be executed
      * @param string $function The function to be executed
@@ -247,7 +243,7 @@ class Router
 
     /**
      * Sets a fallback route to be executed when no other routes match.
-     * 
+     *
      * @param string $path The path for the fallback route
      * @param callable $function The function to be executed for the fallback route
      * @return void
@@ -259,7 +255,7 @@ class Router
 
     /**
      * Creates a Middleware instance with the given function prefixes.
-     * 
+     *
      * @param array $funcs An array of function prefixes to be used as middleware
      * @return Middleware
      */
@@ -270,7 +266,7 @@ class Router
 
     /**
      * Creates a FunctionClass instance for registering functions with the Router.
-     * 
+     *
      * @return FunctionClass
      */
     public static function functionRegister()
@@ -281,7 +277,7 @@ class Router
     /**
      * Handles the incoming request, executes the matching route, or falls back to the fallback route if no match is found.
      * To disable automatic request handling, set Router::$handleRequestOnExit to false.
-     * 
+     *
      * @return void
      */
     public static function handleRequest()
@@ -305,7 +301,7 @@ class Router
 
     /**
      * Matches a route with wildcard patterns to the incoming URI.
-     * 
+     *
      * @param string $method The HTTP method of the route
      * @param string $uri The URI of the incoming request
      * @return array|null The matched route or null if no match is found
@@ -325,7 +321,7 @@ class Router
 
     /**
      * Executes the route by calling the specified class and function.
-     * 
+     *
      * @param array $route The route containing class and function to be executed
      * @return void
      */
@@ -341,7 +337,7 @@ class Router
 
     /**
      * Instantiates the class and invokes the specified function.
-     * 
+     *
      * @param string $class The class containing the function to be executed
      * @param string $function The function to be invoked
      * @return mixed The result of the function execution
@@ -359,7 +355,7 @@ class Router
 
     /**
      * Invokes a function based on its prefix, checking for prefixed routes if needed.
-     * 
+     *
      * @param string $prefix The prefix of the function to be executed
      * @return mixed The result of the function execution
      */
