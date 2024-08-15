@@ -127,6 +127,7 @@ class MysqliInstance extends DBInstance
     /**
      * Executes a query on the database without any safety checks.
      *
+     *
      * @param string $query The SQL query to be executed.
      * @return void
      */
