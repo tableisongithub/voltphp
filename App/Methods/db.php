@@ -132,7 +132,11 @@ class MysqliInstance extends DBInstance
      */
     public function unsafeQuery(string $query): void
     {
-        $this->connection->query($query);
+        try {
+            $this->connection->query($query);
+        } catch (mysqli_sql_exception $e) {
+            throw new Exception("MySQLi Error: " . $e->getMessage());
+        }
     }
 
     /**
@@ -180,7 +184,7 @@ class PDOInstance extends DBInstance
 {
     private $connection;
 
-    protected function __construct(string $schema, array $credentials, string $prefix = "", bool $unsafe = false)
+    protected function __construct(string $schema, array $credentials, bool $unsafe = false)
     {
         $this->unsafe = $unsafe;
         if (!extension_loaded('mysqli')) {
