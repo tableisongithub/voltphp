@@ -156,32 +156,63 @@ class PDOInstance extends DBInstance
 
     protected function __construct(string $schema, array $credentials, string $prefix = "", bool $unsafe = false)
     {
-    }
+        $this->unsafe = $unsafe;
+        if (!extension_loaded('mysqli')) {
+            throw new Exception('The MySQLi extension is not loaded.');
+        }
+        if (!$unsafe) {
+            if (!str_contains($schema, 'CREATE TABLE')) {
+                trigger_error("The provided schema does not contain a CREATE TABLE statement. Is it a bug? To disable this, create the instance with \$unsafe set to true.", E_WARNING);
+            }
+            // Check if the schema contains any CREATE TABLE statements without IF NOT EXISTS
+            if (preg_match("/CREATE\s+TABLE\s+(?!IF\s+NOT\s+EXISTS)/i", $schema)) {
+                trigger_error("The schema may fail, correcting. To disable this, create the instance with \$unsafe set to true.", E_WARNING);
 
+                // Replace all CREATE TABLE statements without IF NOT EXISTS with CREATE TABLE IF NOT EXISTS
+                $schema = preg_replace("/CREATE\s+TABLE\s+(?!IF\s+NOT\s+EXISTS)/i", 'CREATE TABLE IF NOT EXISTS ', $schema);
+            }
+        }
+        $this->schema = $schema;
+        $this->connect($credentials);
+        $this->tables();
+    }
 
     protected function __destruct()
     {
-        // TODO: Implement __destruct() method.
+        $this->kill();
     }
 
     public function unsafeQuery(string $query)
     {
-        // TODO: Implement query() method.
+        try {
+            $stmt = $this->connection->query($query);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            echo "Query failed: " . $e->getMessage();
+            return false;
+        }
     }
-
 
     public function kill(): bool
     {
-        // TODO: Implement kill() method.
+        if (empty($this->connection)) {
+            return false;
+        }
+        $this->connection = null;
+        return true;
     }
 
     public function tables(): bool
     {
-        // TODO: Implement tables() method.
+        return $this->connection->exec($this->schema);
     }
 
     protected function connect(array $credentials): bool
     {
-        // TODO: Implement connect() method.
+        if (!$this->connection = new PDO("mysql:host={$credentials['host']};dbname={$credentials['database']}", $credentials['username'], $credentials['password'])) {
+            return false;
+        } else {
+            return true;
+        }
     }
 }
