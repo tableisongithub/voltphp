@@ -115,17 +115,31 @@ class MysqliInstance extends DBInstance
         $this->tables();
     }
 
+    /**
+     * Destructor for the MysqliInstance class.
+     * Terminates the database connection.
+     */
     protected function __destruct()
     {
         $this->kill();
     }
 
+    /**
+     * Executes a query on the database without any safety checks.
+     *
+     * @param string $query The SQL query to be executed.
+     * @return void
+     */
     public function unsafeQuery(string $query): void
     {
         $this->connection->query($query);
     }
 
-
+    /**
+     * Terminates the database connection.
+     *
+     * @return bool Returns true if the connection is successfully terminated, false otherwise.
+     */
     public function kill(): bool
     {
         if (empty($this->connection)) {
@@ -135,11 +149,23 @@ class MysqliInstance extends DBInstance
         return true;
     }
 
+    /**
+     * Creates the necessary tables in the database.
+     *
+     * @return bool Returns true if the tables are successfully created, false otherwise.
+     */
     public function tables(): bool
     {
         return $this->connection->multi_query($this->schema);
     }
 
+    /**
+     * Connects to the database using the provided credentials.
+     *
+     * @param array $credentials An associative array containing the database connection credentials.
+     *  Format: ['host' => 'host:port', 'username' => '', 'password' => '', 'database' => '']
+     * @return bool Returns true if the connection is successfully established, false otherwise.
+     */
     protected function connect(array $credentials): bool
     {
         if (!$this->connection = new mysqli($credentials['host'], $credentials['username'], $credentials['password'], $credentials['database'])) {
