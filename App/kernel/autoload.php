@@ -1,4 +1,6 @@
 <?php
+header("server: Voltphp");
+header("X-Powered-By: Voltphp");
 try {
     require_once ROOT . '/App/Providers/RouterProvider.php';
 } catch (Exception $e) {
