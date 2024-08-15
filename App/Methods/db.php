@@ -130,10 +130,10 @@ class MysqliInstance extends DBInstance
      * @param string $query The SQL query to be executed.
      * @return void
      */
-    public function unsafeQuery(string $query): void
+    public function unsafeQuery(string $query)
     {
         try {
-            $this->connection->query($query);
+            return $this->connection->query($query);
         } catch (mysqli_sql_exception $e) {
             throw new Exception("MySQLi Error: " . $e->getMessage());
         }
