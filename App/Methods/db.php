@@ -63,7 +63,7 @@ abstract class DBInstance
      * @param string $query The SQL query to be executed.
      * @return mixed Returns the result of the query execution.
      */
-    public function query(string $query)
+    public function query(string $query): mixed
     {
         if (!$this->tables()) {
             if ($this->unsafe) {
@@ -79,7 +79,7 @@ abstract class DBInstance
      * @param string $query The SQL query to be executed.
      * @return mixed Returns the result of the unsafe query execution.
      */
-    abstract protected function unsafeQuery(string $query);
+    abstract protected function unsafeQuery(string $query): mixed;
 }
 
 
@@ -131,7 +131,7 @@ class MysqliInstance extends DBInstance
      * @param string $query The SQL query to be executed.
      * @return void
      */
-    public function unsafeQuery(string $query)
+    public function unsafeQuery(string $query): mixed
     {
         try {
             return $this->connection->query($query);
@@ -231,7 +231,7 @@ class PDOInstance extends DBInstance
      * @param string $query The SQL query to be executed.
      * @return mixed Returns the result of the query execution or false if the query fails.
      */
-    public function unsafeQuery(string $query)
+    public function unsafeQuery(string $query): mixed
     {
         try {
             $stmt = $this->connection->query($query);
