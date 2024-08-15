@@ -61,7 +61,9 @@ abstract class DBInstance
      */
     public function query(string $query)
     {
-        $this->tables($this->tables);
+        if (!$this->tables()) {
+            throw new Exception('Failed to create tables.');
+        }
         return $this->unsafeQuery($query);
     }
 

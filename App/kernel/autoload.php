@@ -1,5 +1,5 @@
 <?php
-header("server: Voltphp");
+header("Server: VoltPHP");
 header("X-Powered-By: Voltphp");
 if (!file_exists(ROOT . "/.env")) {
     echo "Please create a .env file in the root directory";
