@@ -9,7 +9,7 @@
 		"lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
 		"preview": "vite preview",
 		"__comment": "use command below only if you know what you are doing if you dont know what you are doing you can break your repository",
-		"forcePush": "git push origin HEAD:main --force"
+		"forcePush": "git push origin HEAD:main --force && git fetch && git pull"
 	},
 	"dependencies": {
 		"eslint-plugin-react": "^7.35.0",
