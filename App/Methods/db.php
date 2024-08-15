@@ -184,6 +184,14 @@ class PDOInstance extends DBInstance
 {
     private $connection;
 
+    /**
+     * Constructor for the PDOInstance class.
+     *
+     * @param string $schema The SQL query used to create tables.
+     * @param array $credentials An associative array containing the database connection credentials.
+     * @param bool $unsafe An optional flag to disable safety checks.
+     * @throws Exception Throws an exception if the MySQLi extension is not loaded.
+     */
     protected function __construct(string $schema, array $credentials, bool $unsafe = false)
     {
         $this->unsafe = $unsafe;
@@ -207,11 +215,21 @@ class PDOInstance extends DBInstance
         $this->tables();
     }
 
+    /**
+     * Destructor for the PDOInstance class.
+     * Terminates the database connection.
+     */
     protected function __destruct()
     {
         $this->kill();
     }
 
+    /**
+     * Executes a query on the database without any safety checks.
+     *
+     * @param string $query The SQL query to be executed.
+     * @return mixed Returns the result of the query execution or false if the query fails.
+     */
     public function unsafeQuery(string $query)
     {
         try {
@@ -223,6 +241,11 @@ class PDOInstance extends DBInstance
         }
     }
 
+    /**
+     * Terminates the database connection.
+     *
+     * @return bool Returns true if the connection is successfully terminated, false otherwise.
+     */
     public function kill(): bool
     {
         if (empty($this->connection)) {
@@ -232,11 +255,23 @@ class PDOInstance extends DBInstance
         return true;
     }
 
+    /**
+     * Creates the necessary tables in the database.
+     *
+     * @return bool Returns true if the tables are successfully created, false otherwise.
+     */
     public function tables(): bool
     {
         return $this->connection->exec($this->schema);
     }
 
+    /**
+     * Connects to the database using the provided credentials.
+     *
+     * @param array $credentials An associative array containing the database connection credentials.
+     *  Format: ['host' => 'host:port', 'username' => '', 'password' => '', 'database' => '']
+     * @return bool Returns true if the connection is successfully established, false otherwise.
+     */
     protected function connect(array $credentials): bool
     {
         if (!$this->connection = new PDO("mysql:host={$credentials['host']};dbname={$credentials['database']}", $credentials['username'], $credentials['password'])) {
