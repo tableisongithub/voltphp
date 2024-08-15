@@ -1,4 +1,6 @@
 <?php
+
+
 class publicRender
 {
     public function render($path)
@@ -30,3 +32,4 @@ class publicRender
         }
     }
 }
+

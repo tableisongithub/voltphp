@@ -35,9 +35,6 @@ For detailed usage instructions, refer to the [Documentation](Documentation.md).
 
 Contributions are welcome! Please read the [Contributing Guidelines](CONTRIBUTING.md) for more information.
 
-## License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
 # VoltPHP Documentation
 
@@ -61,7 +58,7 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 ### Prerequisites
 
-- PHP 7.4 or higher
+- PHP 8 or higher
 - Composer
 - Git
 
