@@ -25,6 +25,27 @@ switch ($args[0]) {
         }
         file_put_contents('.env', $envContent);
         break;
+    case 'migration':
+        switch ($args[1]) {
+            case 'down':
+                echo "Rolling back migration...\n";
+                // rollback migration
+                break;
+            default:
+                echo "Pushing migration...\n";
+                $files = glob('database/migrations/*.php');
+                foreach ($files as $file) {
+                    echo "Processing file: $file\n";
+                    require $file; // class <unknown class not matching file name> extends Migration { up() {} down() {} }
+                    $declaredClasses = get_declared_classes();
+                    $migrationClass = end($declaredClasses);
+                    $migration = new $migrationClass;
+                    $migration->up();
+                    echo "Migration done.\n";
+                }
+                break;
+        }
+        break;
     default:
         echo "Unknown command: {$args[0]}\n";
         break;

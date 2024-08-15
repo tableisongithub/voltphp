@@ -1,8 +1,23 @@
 services: 
+  mysql:
+    image: mysql:8.0
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: mydb
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
   php:
-    image: php:8.1-fpm
+    build:
+      context: .
+      dockerfile: PHP.Dockerfile
+    environment:
+      - APP_ENV=development
     volumes:
       - ./:/var/www/html
+    depends_on:
+      - mysql
   web:
     image: nginx:alpine
     ports:
