@@ -27,7 +27,7 @@ abstract class DBInstance
      * @param string $prefix An optional prefix for the table names.
      * @return bool Returns true if the instance is successfully created, false otherwise.
      */
-    abstract protected function __construct(string $schema, array $credentials, bool $unsafe = false);
+    abstract public function __construct(string $schema, array $credentials, bool $unsafe = false);
 
     /**
      * Creates the necessary tables in the database.
@@ -55,7 +55,7 @@ abstract class DBInstance
      * Destructor for the DBInstance class.
      *
      */
-    abstract protected function __destruct();
+    abstract public function __destruct();
 
     /**
      * Executes a query on the database.
@@ -92,7 +92,7 @@ class MysqliInstance extends DBInstance
     /**
      * @throws Exception Throws an exception if the MySQLi extension is not loaded.
      */
-    protected function __construct(string $schema, array $credentials, bool $unsafe = false)
+    public function __construct(string $schema, array $credentials, bool $unsafe = false)
     {
         $this->unsafe = $unsafe;
         if (!extension_loaded('mysqli')) {
@@ -119,7 +119,7 @@ class MysqliInstance extends DBInstance
      * Destructor for the MysqliInstance class.
      * Terminates the database connection.
      */
-    protected function __destruct()
+    public function __destruct()
     {
         $this->kill();
     }
@@ -192,7 +192,7 @@ class PDOInstance extends DBInstance
      * @param bool $unsafe An optional flag to disable safety checks.
      * @throws Exception Throws an exception if the MySQLi extension is not loaded.
      */
-    protected function __construct(string $schema, array $credentials, bool $unsafe = false)
+    public function __construct(string $schema, array $credentials, bool $unsafe = false)
     {
         $this->unsafe = $unsafe;
         if (!extension_loaded('mysqli')) {
@@ -219,7 +219,7 @@ class PDOInstance extends DBInstance
      * Destructor for the PDOInstance class.
      * Terminates the database connection.
      */
-    protected function __destruct()
+    public function __destruct()
     {
         $this->kill();
     }
