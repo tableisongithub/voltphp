@@ -16,6 +16,10 @@ abstract class DBInstance
 {
     protected $schema;
 
+    protected $credentials;
+
+    protected $unsafe;
+
     /**
      * Constructor for the DBInstance class.
      *
@@ -23,7 +27,7 @@ abstract class DBInstance
      * @param string $prefix An optional prefix for the table names.
      * @return bool Returns true if the instance is successfully created, false otherwise.
      */
-    abstract protected function __construct(string $schema, array $credentials, string $prefix = "", bool $unsafe = false);
+    abstract protected function __construct(string $schema, array $credentials, bool $unsafe = false);
 
     /**
      * Creates the necessary tables in the database.
@@ -62,7 +66,9 @@ abstract class DBInstance
     public function query(string $query)
     {
         if (!$this->tables()) {
-            throw new Exception('Failed to create tables.');
+            if ($this->unsafe) {
+                trigger_error("Failed to create tables, using unsafe query. To disable this, create the instance with \$unsafe set to true.", E_WARNING);
+            }
         }
         return $this->unsafeQuery($query);
     }
@@ -79,15 +85,16 @@ abstract class DBInstance
 
 class MysqliInstance extends DBInstance
 {
-    private $connection;
+    protected $connection;
 
     // Constructor for the MysqliInstance class.
 
     /**
      * @throws Exception Throws an exception if the MySQLi extension is not loaded.
      */
-    protected function __construct(string $schema, array $credentials, string $prefix = "", bool $unsafe = false)
+    protected function __construct(string $schema, array $credentials, bool $unsafe = false)
     {
+        $this->unsafe = $unsafe;
         if (!extension_loaded('mysqli')) {
             throw new Exception('The MySQLi extension is not loaded.');
         }
@@ -108,13 +115,12 @@ class MysqliInstance extends DBInstance
         $this->tables();
     }
 
-
     protected function __destruct()
     {
         $this->kill();
     }
 
-    public function unsafeQuery(string $query)
+    public function unsafeQuery(string $query): void
     {
         $this->connection->query($query);
     }
@@ -126,6 +132,7 @@ class MysqliInstance extends DBInstance
             return false;
         }
         $this->connection->close();
+        return true;
     }
 
     public function tables(): bool
