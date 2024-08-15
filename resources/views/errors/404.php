@@ -11,6 +11,10 @@
         <h1>404 | Not Found</h1>
     </div>
     <style>
+        * {
+            color: white;
+        }
+
         html,
         body {
             width: 100%;

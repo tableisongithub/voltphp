@@ -8,7 +8,7 @@
 
 <body>
     <div class="center">
-        <h1>500 | Internal server error</h1>
+        <h1>503 | Service Unavaible</h1>
     </div>
     <style>
         * {
