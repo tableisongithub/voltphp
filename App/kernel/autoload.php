@@ -3,8 +3,18 @@ error_reporting(E_ALL);
 header("Server: VoltPHP");
 header("X-Powered-By: VoltPHP");
 if (!file_exists(ROOT . "/.env")) {
-    echo "Please create a .env file in the root directory";
-    exit();
+    trigger_error("No.env file found. Creating empty...", E_WARNING);
+    $envFile = fopen(ROOT . "/.env", "w");
+    fwrite($envFile, '
+DB_HOST =
+DB_PART =
+DB_DB =
+DB_USER =
+DB_PASSWORD =
+DB_UNSAFE =
+MAINTENANCE =
+');
+    fclose($envFile);
 }
 if ($env["MAINTENANCE"]) {
     require_once ROOT . "/resources/views/errors/503.php";
