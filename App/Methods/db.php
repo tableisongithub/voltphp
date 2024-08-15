@@ -14,16 +14,16 @@ class DB
  */
 abstract class DBInstance
 {
-    protected $tableCreationQuery;
+    protected $schema;
 
     /**
      * Constructor for the DBInstance class.
      *
-     * @param string $tableCreationQuery The SQL query used to create tables.
+     * @param string $schema The SQL query used to create tables.
      * @param string $prefix An optional prefix for the table names.
      * @return bool Returns true if the instance is successfully created, false otherwise.
      */
-    abstract protected function __construct(string $tableCreationQuery, string $prefix = "");
+    abstract protected function __construct(string $schema, array $credentials, string $prefix = "", bool $unsafe = false);
 
     /**
      * Creates the necessary tables in the database.
@@ -79,35 +79,65 @@ class MysqliInstance extends DBInstance
 {
     private $connection;
 
-    protected function __construct(string $tableCreationQuery, string $prefix = "")
+    // Constructor for the MysqliInstance class.
+
+    /**
+     * @throws Exception Throws an exception if the MySQLi extension is not loaded.
+     */
+    protected function __construct(string $schema, array $credentials, string $prefix = "", bool $unsafe = false)
     {
+        if (!extension_loaded('mysqli')) {
+            throw new Exception('The MySQLi extension is not loaded.');
+        }
+        if (!$unsafe) {
+            if (!str_contains($schema, 'CREATE TABLE')) {
+                trigger_error("The provided schema does not contain a CREATE TABLE statement. Is it a bug? To disable this, create the instance with \$unsafe set to true.", E_WARNING);
+            }
+            // Check if the schema contains any CREATE TABLE statements without IF NOT EXISTS
+            if (preg_match("/CREATE\s+TABLE\s+(?!IF\s+NOT\s+EXISTS)/i", $schema)) {
+                trigger_error("The schema may fail, correcting. To disable this, create the instance with \$unsafe set to true.", E_WARNING);
+
+                // Replace all CREATE TABLE statements without IF NOT EXISTS with CREATE TABLE IF NOT EXISTS
+                $schema = preg_replace("/CREATE\s+TABLE\s+(?!IF\s+NOT\s+EXISTS)/i", 'CREATE TABLE IF NOT EXISTS ', $schema);
+            }
+        }
+        $this->schema = $schema;
+        $this->connect($credentials);
+        $this->tables();
     }
 
 
     protected function __destruct()
     {
-        // TODO: Implement __destruct() method.
+        $this->kill();
     }
 
     public function unsafeQuery(string $query)
     {
-        // TODO: Implement query() method.
+        $this->connection->query($query);
     }
 
 
     public function kill(): bool
     {
-        // TODO: Implement kill() method.
+        if (empty($this->connection)) {
+            return false;
+        }
+        $this->connection->close();
     }
 
     public function tables(): bool
     {
-        // TODO: Implement tables() method.
+        return $this->connection->multi_query($this->schema);
     }
 
     protected function connect(array $credentials): bool
     {
-        // TODO: Implement connect() method.
+        if (!$this->connection = new mysqli($credentials['host'], $credentials['username'], $credentials['password'], $credentials['database'])) {
+            return false;
+        } else {
+            return true;
+        }
     }
 }
 
@@ -115,7 +145,7 @@ class PDOInstance extends DBInstance
 {
     private $connection;
 
-    protected function __construct(string $tableCreationQuery, string $prefix = "")
+    protected function __construct(string $schema, array $credentials, string $prefix = "", bool $unsafe = false)
     {
     }
 
