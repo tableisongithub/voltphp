@@ -1,4 +1,5 @@
 <?php
+//Made by VoltPHP. Do not touch!
 if (!defined(ROOT)) {
     die("You have to define the ROOT constant in your index.php file. Use it like this: define('ROOT', __DIR__ . '/../');");
 }

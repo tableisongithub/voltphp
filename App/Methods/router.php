@@ -1,4 +1,5 @@
 <?php
+//Made by VoltPHP. Do not touch!
 error_reporting(E_ALL & ~E_WARNING); // Suppress warnings for a cleaner output
 // For debugging purposes:
 // ini_set('display_errors', 1); // Enable error display

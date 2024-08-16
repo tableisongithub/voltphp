@@ -1,4 +1,5 @@
 <?php
+//Made by VoltPHP. Do not touch!
 function runTroughtFolder($dir)
 {
     $files = scandir($dir);
