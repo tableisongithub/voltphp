@@ -20,6 +20,7 @@ MAINTENANCE =
     fclose($envFile);
     die();
 }
+$env = parse_ini_file(ROOT . '/.env');
 if ($env["MAINTENANCE"]) {
     require_once ROOT . "/resources/views/errors/503.php";
     return;
