@@ -78,6 +78,7 @@ class FunctionClass
 class Middleware
 {
     private $funcs;
+    private $inverted = false;
     private $parsedVariables;
 
     /**
@@ -89,6 +90,11 @@ class Middleware
     {
         $this->funcs = $funcs;
         $this->parsedVariables = $parsedVariables;
+    }
+
+    public function invert()
+    {
+        $this->inverted = true;
     }
 
     /**
@@ -103,10 +109,11 @@ class Middleware
             try {
                 Router::invokeByPrefix($func);
             } catch (Exception $e) {
+                if ($this->inverted) call_user_func($callbackfunc);
                 return;
             }
         }
-        call_user_func($callbackfunc);
+        if (!$this->inverted) call_user_func($callbackfunc);
     }
 }
 
