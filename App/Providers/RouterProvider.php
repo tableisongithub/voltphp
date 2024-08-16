@@ -1,5 +1,4 @@
 <?php
-//Made by VoltPHP. Do not touch!
 function runTroughtFolder($dir)
 {
     $files = scandir($dir);
@@ -16,7 +15,6 @@ function runTroughtFolder($dir)
 }
 runTroughtFolder(ROOT . '/App/Http');
 require_once ROOT . '/App/Methods/router.php';
-require_once ROOT . '/routes/base.php';
+runTroughtFolder(ROOT . '/routers');
 require_once ROOT . '/App/Methods/assets.php';
-
 Router::handleRequest();
