@@ -1,6 +1,7 @@
 <?php
+//Made by VoltPHP. Do not touch!
 if (!defined(ROOT)) {
-    die("You have to define the ROOT constant in your index.php file. Use it like this: define('ROOT', __DIR__ . '/../');");
+    die("You have to define the ROOT constant in your public/index.php file. Use it like this: define('ROOT', __DIR__ . '/../');");
 }
 require_once ROOT . '/App/dependencies.php';
 error_reporting(E_ALL);
@@ -11,7 +12,7 @@ if (!file_exists(ROOT . "/.env")) {
     $envFile = fopen(ROOT . "/.env", "w");
     fwrite($envFile, '
 DB_HOST =
-DB_PART =
+DB_PORT =
 DB_DB =
 DB_USER =
 DB_PASSWORD =
