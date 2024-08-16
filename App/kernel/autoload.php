@@ -51,15 +51,15 @@ if (getenv('APP_ENV') === "development") {
     require_once ROOT . '/App/Providers/RouterProvider.php';
     runTroughtFolder(ROOT . '/App/Providers');
     runTroughtFolder(ROOT . '/App/Http');
-    runTroughtFolder(ROOT . '/routers');
     runTroughtFolder(ROOT . '/App/Methods');
+    runTroughtFolder(ROOT . '/routers');
 } else {
     try {
         require_once ROOT . '/App/Providers/RouterProvider.php';
         runTroughtFolder(ROOT . '/App/Providers');
         runTroughtFolder(ROOT . '/App/Http');
-        runTroughtFolder(ROOT . '/routers');
         runTroughtFolder(ROOT . '/App/Methods');
+        runTroughtFolder(ROOT . '/routers');
     } catch (Exception $e) {
         echo $e->getMessage();
         require_once ROOT . '/resources/views/errors/500.php';
