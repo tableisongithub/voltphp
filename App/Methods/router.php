@@ -95,11 +95,12 @@ class Middleware
     /**
      * Inverts the middleware functions, executing the callback function if any middleware function fails.
      * 
-     * @return void
+     * @return Middleware
      */
-    public function invert()
+    public function invert(): Middleware
     {
         $this->inverted = true;
+        return $this;
     }
 
     /**
@@ -112,9 +113,9 @@ class Middleware
     {
         foreach ($this->funcs as $func) {
             try {
-                Router::invokeByPrefix($func);
+                Router::invokeByPrefix($func, false);
             } catch (Exception $e) {
-                if ($this->inverted) call_user_func($callbackfunc);
+                if ($this->inverted) call_user_func($callbackfunc, ...$this->parsedVariables);
                 return;
             }
         }
@@ -383,7 +384,7 @@ class Router
      * @param string $prefix The prefix of the function to be executed
      * @return mixed The result of the function execution
      */
-    public static function invokeByPrefix($prefix)
+    public static function invokeByPrefix($prefix, $pageInvoked = true)
     {
         if (isset(self::$functions[$prefix])) {
             return call_user_func(self::$functions[$prefix]);
@@ -399,7 +400,10 @@ class Router
                 return self::invoke($route['class'], $route['function']);
             }
         }
-
-        require_once ROOT . '/resources/views/' . $prefixedRoute ? 'errors/500.php' : 'errors/404.php'; // Load error pages as appropriate
+        if ($pageInvoked) {
+            require_once ROOT . '/resources/views/' . ($prefixedRoute ? 'errors/500.php' : 'errors/404.php'); // Load error pages as appropriate
+        } else {
+            throw new Exception('Function not found');
+        }
     }
 }

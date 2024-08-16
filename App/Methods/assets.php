@@ -1,5 +1,5 @@
 <?php
-
+//Made by VoltPHP. Do not touch!
 
 class publicRender
 {
@@ -32,4 +32,3 @@ class publicRender
         }
     }
 }
-

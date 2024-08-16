@@ -23,6 +23,16 @@ MAINTENANCE =
     die();
 }
 $env = parse_ini_file(ROOT . '/.env');
+if ($env["APP_KEY"] == "" || $env["APP_KEY"] == null) {
+    $env["APP_KEY"] = bin2hex(random_bytes(32));
+    $envFile = fopen(ROOT . "/.env", "w");
+    $rebuildedEnv = "";
+    foreach ($env as $key => $value) {
+        $rebuildedEnv .= $key . " = " . $value . "\n";
+    }
+    fwrite($envFile, $rebuildedEnv);
+    fclose($envFile);
+}
 if ($env["MAINTENANCE"]) {
     require_once ROOT . "/resources/views/errors/503.php";
     return;

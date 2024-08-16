@@ -1,5 +1,5 @@
 <?php
-//db static classes.
+//Made by VoltPHP. Do not touch!
 
 
 class DB
@@ -287,4 +287,3 @@ class PDOInstance extends DBInstance
         }
     }
 }
-
