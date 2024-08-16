@@ -92,6 +92,11 @@ class Middleware
         $this->parsedVariables = $parsedVariables;
     }
 
+    /**
+     * Inverts the middleware functions, executing the callback function if any middleware function fails.
+     * 
+     * @return void
+     */
     public function invert()
     {
         $this->inverted = true;
