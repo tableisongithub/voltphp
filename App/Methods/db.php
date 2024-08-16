@@ -90,7 +90,11 @@ class MysqliInstance extends DBInstance
     // Constructor for the MysqliInstance class.
 
     /**
+     * @param string $schema The SQL query used to create tables.
+     * @param array $credentials An associative array containing the database connection credentials.
+     *   Format: ['host' => 'host:port', 'username' => '', 'password' => '', 'database' => '']
      * @throws Exception Throws an exception if the MySQLi extension is not loaded.
+     * @param bool $unsafe An optional flag to disable safety checks.
      */
     public function __construct(string $schema, array $credentials, bool $unsafe = false)
     {
@@ -190,6 +194,7 @@ class PDOInstance extends DBInstance
      *
      * @param string $schema The SQL query used to create tables.
      * @param array $credentials An associative array containing the database connection credentials.
+     *   Format: ['host' => 'host:port', 'username' => '', 'password' => '', 'database' => '']
      * @param bool $unsafe An optional flag to disable safety checks.
      * @throws Exception Throws an exception if the MySQLi extension is not loaded.
      */
