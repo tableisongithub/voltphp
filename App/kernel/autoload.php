@@ -1,7 +1,8 @@
 <?php
-if (version_compare(phpversion(), '8', '<')) {
-    die("VoltPHP requires PHP 8 or higher.");
+if (!defined(ROOT)) {
+    die("You have to define the ROOT constant in your index.php file. Use it like this: define('ROOT', __DIR__ . '/../');");
 }
+require_once ROOT . '/App/dependencies.php';
 error_reporting(E_ALL);
 header("Server: VoltPHP");
 header("X-Powered-By: VoltPHP");
