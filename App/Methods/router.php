@@ -78,6 +78,7 @@ class FunctionClass
 class Middleware
 {
     private $funcs;
+    private $inverted = false;
     private $parsedVariables;
 
     /**
@@ -92,6 +93,16 @@ class Middleware
     }
 
     /**
+     * Inverts the middleware functions, executing the callback function if any middleware function fails.
+     * 
+     * @return void
+     */
+    public function invert()
+    {
+        $this->inverted = true;
+    }
+
+    /**
      * Executes the middleware functions in sequence and then runs the provided callback function.
      * 
      * @param callable $callbackfunc The function to be executed if all middleware functions succeed
@@ -103,10 +114,11 @@ class Middleware
             try {
                 Router::invokeByPrefix($func);
             } catch (Exception $e) {
+                if ($this->inverted) call_user_func($callbackfunc);
                 return;
             }
         }
-        call_user_func($callbackfunc);
+        if (!$this->inverted) call_user_func($callbackfunc);
     }
 }
 
