@@ -1,7 +1,7 @@
 <?php
 //Made by VoltPHP. Do not touch!
 
-namespace App\Kernel\db;
+namespace App\Base\db;
 
 
 class DB

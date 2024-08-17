@@ -2,23 +2,22 @@
 if (version_compare(phpversion(), '8.1.0', '<')) {
     die("VoltPHP requires PHP 8.1 or higher.");
 }
+if (!defined('ROOT')) {
+    define('ROOT', __DIR__ . '/../../');
+}
 error_reporting(E_ALL);
 header("Server: VoltPHP");
 header("X-Powered-By: VoltPHP");
-function runTroughtFolder($dir)
-{
-    $files = scandir($dir);
-    foreach ($files as $file) {
-        if ($file == "." || $file == "..") {
-            continue;
-        }
-        if (is_dir($dir . "/" . $file)) {
-            runTroughtFolder($dir . "/" . $file);
-        } else {
-            require_once $dir . "/" . $file;
-        }
+spl_autoload_register(function ($class) {
+
+    // and prepend the base directory
+    $file = ROOT . str_replace('\\', '/', $class) . '.php';
+
+    // If the file exists, require it
+    if (file_exists($file)) {
+        require_once $file;
     }
-}
+});
 if (!file_exists(ROOT . "/.env")) {
     trigger_error("No.env file found. Creating empty... Please fill it.", E_WARNING);
     $envFile = fopen(ROOT . "/.env", "w");
@@ -35,7 +34,6 @@ MAINTENANCE =
     die();
 }
 $env = parse_ini_file(ROOT . '/.env');
-define('env', $env);
 if ($env["MAINTENANCE"]) {
     // show everyerror and warning
     error_reporting(E_ALL);
