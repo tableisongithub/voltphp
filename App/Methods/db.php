@@ -83,30 +83,31 @@ abstract class DBInstance
      */
     abstract protected function unsafeQuery(string $query): mixed;
 
-    /**
-     * Centralized clean function to sanitize input.
-     * This function will escape potentially harmful characters for SQL queries.
-     *
-     * @param mixed $data The data to be sanitized
-     * @param string $encoding The encoding to use for sanitization. Default is UTF-8.
-     * @return mixed The sanitized data, returns null on failure or bad encoding.
-     */
-    public static function clean($data, $encoding = 'UTF-8'): mixed
-    {
-        if (is_array($data)) {
-            foreach ($data as &$value) {
-                $value = self::clean($value, $encoding);
-            }
-            return $data;
-        } else {
-            $sanitizedData = htmlspecialchars($data, ENT_QUOTES, $encoding);
-            if ($sanitizedData === false) {
-                trigger_error("Failed to sanitize input data.", E_WARNING);
-                return null;
-            }
-            return $sanitizedData;
+
+/**
+ * Escapes special characters in a string or array of strings to make them safe for SQL queries.
+ *
+ * @param mixed $data The data to be sanitized, either a string or an array of strings.
+ * @return mixed The sanitized data with special characters escaped.
+ */
+public function clean($data)
+{
+    if (is_array($data)) {
+        foreach ($data as &$value) {
+            $value = clean($value);
         }
+        return $data;
+    } else {
+        $data = str_replace("\\", "\\\\", $data);
+        $data = str_replace("'", "\\'", $data);
+        $data = str_replace("\"", "\\\"", $data);
+        $data = str_replace("\x00", "\\0", $data);
+        $data = str_replace("\n", "\\n", $data);
+        $data = str_replace("\r", "\\r", $data);
+        $data = str_replace("\x1a", "\\Z", $data);
+        return $data;
     }
+}
 
     abstract protected function beginTransaction(): bool;
 
