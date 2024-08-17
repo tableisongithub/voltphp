@@ -38,6 +38,7 @@ enum errors: int
     case ALREADY_EXISTS = 3;
     case NO_CREDENTIALS = 4;
     case SERVER_ERROR = 5;
+    case OAUTH2_DISABLED = 6;
 }
 
 /**
@@ -127,6 +128,12 @@ class User
                     $this->loggedIn = false;
                     return false;
                 }
+                if(!$this->data["oauth2"]) {
+                                        $this->selfDestruct();
+                    $this->error = errors::OAUTH2_DISABLED;
+                    $this->loggedIn = false;
+                    return false;
+                    }
                 $this->key = bin2hex(random_bytes(32));
                 $this->conn->query("UPDATE voltphp_users SET key = '" . DBInstance::clean($this->key) . "' WHERE user_id = " . DBInstance::clean($this->data["user_id"]) . ";");
                 $this->loggedIn = true;
