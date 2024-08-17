@@ -1,6 +1,6 @@
 <?php
 if (version_compare(phpversion(), '8.1.0', '<')) {
-    die("VoltPHP requires PHP 8 or higher.");
+    die("VoltPHP requires PHP 8.1 or higher.");
 }
 error_reporting(E_ALL);
 header("Server: VoltPHP");
