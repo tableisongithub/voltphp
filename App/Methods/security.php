@@ -207,7 +207,7 @@ class User
      * @param string $key The API key.
      * @return bool True if the user data was found, false otherwise.
      */
-    private function getDataByApiKey($key)
+    private function getDataByApiKey(string $key): bool
     {
         // Query to check if the API key exists and retrieve the associated user data
         $result = $this->conn->query("
@@ -237,12 +237,9 @@ class User
      * @param string $password The password.
      * @return User|false The User object on success, false on failure.
      */
-    public static function login($username, $password)
+    public static function login(string $username, string $password)
     {
         $user = new User($username, $password, mode::NORMAL);
-        if (!$user) {
-            return false;
-        }
         return $user;
     }
 
@@ -258,12 +255,9 @@ class User
      * @param string $username The username.
      * @return User|false The User object on success, false on failure.
      */
-    public static function forceLogin($username)
+    public static function forceLogin(string $username)
     {
         $user = new User($username, "", mode::OAUTH2);
-        if (!$user) {
-            return false;
-        }
         return $user;
     }
 
@@ -273,12 +267,9 @@ class User
      * @param string $token The token.
      * @return User|false The User object on success, false on failure.
      */
-    public static function tokenLogin($token)
+    public static function tokenLogin(string $token)
     {
         $user = new User("", $token, mode::TOKEN);
-        if (!$user) {
-            return false;
-        }
         return $user;
     }
 
@@ -289,12 +280,9 @@ class User
      * @param string $password The password.
      * @return User|false The User object on success, false on failure.
      */
-    public static function create($username, $password)
+    public static function create(string $username, string $password)
     {
         $user = new User($username, $password, mode::CREATE);
-        if (!$user) {
-            return false;
-        }
         return $user;
     }
 
@@ -311,12 +299,9 @@ class User
      * @param string $username The username.
      * @return User|false The User object on success, false on failure.
      */
-    public static function oauth2Create($username)
+    public static function oauth2Create(string $username)
     {
         $user = new User($username, "", mode::OAUTH2_CREATE);
-        if (!$user) {
-            return false;
-        }
         return $user;
     }
 
@@ -326,7 +311,7 @@ class User
      * @param bool $oauth2 The OAuth2 status.
      * @return bool True on success, false on failure.
      */
-    public function setOauth2(bool $oauth2)
+    public function setOauth2(bool $oauth2): bool
     {
         if ($this->username == null) {
             return false;
@@ -345,7 +330,7 @@ class User
      * @param string $newPassword The new password.
      * @return bool True on success, false on failure.
      */
-    public function updatePassword($newPassword)
+    public function updatePassword(string $newPassword): bool
     {
         if ($this->username == null || !$this->pwauth) {
             return false;
@@ -358,7 +343,7 @@ class User
      *
      * @return array|false An array of API keys on success, false on failure.
      */
-    public function getApiKeys()
+    public function getApiKeys(): false|array
     {
         if ($this->username == null) {
             return false;
@@ -380,7 +365,7 @@ class User
      * @return array|false An associative array with 'key_id' and 'key' on success, or false on failure.
      * @throws RandomException If the random bytes generation fails.
      */
-    public function addApiKey($prefix)
+    public function addApiKey(string $prefix): false|array
     {
         if ($this->username === null) {
             return false;
@@ -413,7 +398,7 @@ class User
      * @param int $key_id The key ID to delete.
      * @return bool True on success, false on failure.
      */
-    public function deleteApiKey($key_id)
+    public function deleteApiKey(int $key_id): bool
     {
         if ($this->username === null) {
             return false;
@@ -426,10 +411,10 @@ class User
      *
      * @return bool True on success, false on failure.
      */
-    public function delete()
+    public function delete(): bool
     {
         // Start a transaction
-        $this->conn->begin_transaction();
+        $this->conn->beginTransaction();
 
         try {
             $result1 = $this->conn->query("DELETE FROM voltphp_users_apikeys WHERE user_id = " . DBInstance::clean($this->data["user_id"]) . ";");
@@ -460,7 +445,7 @@ class User
      * @param string $username The username to set.
      * @return bool True on success, false on failure.
      */
-    private function setUsername($username)
+    private function setUsername(string $username): bool
     {
         $result = $this->conn->query("SELECT * FROM voltphp_users WHERE username = " . DBInstance::clean($username) . ";");
         if ($result && count($result) > 0) {
@@ -479,7 +464,7 @@ class User
      * @param string $password The password to check.
      * @return bool True if the password matches, false otherwise.
      */
-    private function checkPassword($password)
+    private function checkPassword(string $password): bool
     {
         $hash = $this->data["password"];
         return password_verify($password, $hash, PASSWORD_BCRYPT);
@@ -488,7 +473,7 @@ class User
     /**
      * Destroys the user session and clears the user data.
      */
-    private function selfDestruct()
+    private function selfDestruct(): void
     {
         $this->conn->kill();
         $this->username = null;
@@ -504,7 +489,7 @@ class User
      * @param string $loginKey The token to check.
      * @return bool True if the token matches, false otherwise.
      */
-    private function checkToken($loginKey)
+    private function checkToken(string $loginKey): bool
     {
         if ($this->data["token"] === $loginKey) {
             return true;
