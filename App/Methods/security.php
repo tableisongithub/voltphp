@@ -86,10 +86,14 @@ class User
     public $loggedIn = false;
 
     /**
-     * @var bool Allows the user to change passwords.
+     * @var int Sets the permission ring based on the login method. pw/force is 0, token is 1, apikey 2 and nothing 3.
      */
-    private $pwauth = false;
+    public $permissionRing = 3;
 
+    /**
+    * @var null|string If logged in with api key, gets the api keys permission level. this may be useful when doing scopes, etc..
+    */
+    public $apiPermissionLevel = null;
     /**
      * User constructor.
      *
@@ -126,7 +130,7 @@ class User
                 $this->key = bin2hex(random_bytes(32));
                 $this->conn->query("UPDATE voltphp_users SET key = '" . DBInstance::clean($this->key) . "' WHERE user_id = " . DBInstance::clean($this->data["user_id"]) . ";");
                 $this->loggedIn = true;
-                $this->pwauth = true;
+                $this->permissionRing = 0;
                 break;
             case mode::TOKEN:
                 if (!$this->checkToken($loginKey)) {
@@ -136,7 +140,7 @@ class User
                     return false;
                 }
                 $this->loggedIn = true;
-                $this->pwauth = false;
+                $this->permissionRing = 1;
                 break;
             case mode::NORMAL:
                 if (!$this->setUsername($username)) {
@@ -154,7 +158,7 @@ class User
                 $this->key = bin2hex(random_bytes(32));
                 $this->conn->query("UPDATE voltphp_users SET key = '{$this->key}' WHERE user_id = " . DBInstance::clean($this->data["user_id"]) . ";");
                 $this->loggedIn = true;
-                $this->pwauth = true;
+                $this->permissionRing = 0;
                 break;
             case mode::OAUTH2_CREATE:
                 if (empty($username)) {
@@ -165,8 +169,7 @@ class User
                 $this->username = $username;
                 $this->key = bin2hex(random_bytes(32));
                 $this->conn->query("INSERT INTO voltphp_users (username, key, created_at, oauth2) VALUES ('" . DBInstance::clean($this->username) . ", ''{$this->key}', NOW(), TRUE);");
-                $this->loggedIn = true;
-                $this->pwauth = true;
+                $this->permissionRing = 0;
                 break;
             case mode::CREATE:
                 if (empty($username) || empty($loginKey)) {
@@ -178,7 +181,7 @@ class User
                 $this->key = bin2hex(random_bytes(32));
                 $this->conn->query("INSERT INTO voltphp_users (username, password, key, created_at, oauth2) VALUES ('" . DBInstance::clean($this->username) . "', '" . password_hash($loginKey, PASSWORD_BCRYPT) . "', '{$this->key}', NOW(), FALSE);");
                 $this->loggedIn = true;
-                $this->pwauth = true;
+                $this->permissionRing = 0;
                 break;
             case mode::KEY:
                 if (empty($loginKey)) {
@@ -192,7 +195,7 @@ class User
                     return false;
                 }
                 $this->loggedIn = true;
-                $this->pwauth = false;
+                $this->permissionRing = 2;
                 break;
 
         }
@@ -212,6 +215,7 @@ class User
         // Query to check if the API key exists and retrieve the associated user data
         $result = $this->conn->query("
         SELECT u.* 
+        ak.permissions
         FROM voltphp_users u 
         JOIN voltphp_users_apikeys ak ON u.user_id = ak.user_id 
         WHERE ak.key = '" . DBInstance::clean($key) . "';"
@@ -223,6 +227,7 @@ class User
             $this->data = $result[0];
             $this->username = $this->data["username"];
             $this->user_id = $this->data["user_id"];
+            $this->apiPermissionLevel = $this->data["permissions"];
             return true;
         } else {
             // Return false if no data was found
@@ -313,7 +318,7 @@ class User
      */
     public function setOauth2(bool $oauth2): bool
     {
-        if ($this->username == null) {
+        if ($this->username == null || !$this->permissionRing <= 1) {
             return false;
         }
         return $this->conn->query("UPDATE voltphp_users SET oauth2 = " . ($oauth2));
@@ -332,7 +337,7 @@ class User
      */
     public function updatePassword(string $newPassword): bool
     {
-        if ($this->username == null || !$this->pwauth) {
+        if ($this->username == null || $this->permissionRing <= 0) {
             return false;
         }
         return $this->conn->query("UPDATE voltphp_users SET password = '" . password_hash($newPassword, PASSWORD_BCRYPT) . "' WHERE user_id = " . DBInstance::clean($this->data["user_id"]) . ";");
@@ -345,7 +350,7 @@ class User
      */
     public function getApiKeys(): false|array
     {
-        if ($this->username == null) {
+        if ($this->username == null || !$this->permissionRing <= 1) {
             return false;
         }
         // Query to retrieve all API keys associated with the user
@@ -367,7 +372,7 @@ class User
      */
     public function addApiKey(string $prefix): false|array
     {
-        if ($this->username === null) {
+        if ($this->username == null || !$this->permissionRing <= 1) {
             return false;
         }
 
@@ -400,7 +405,7 @@ class User
      */
     public function deleteApiKey(int $key_id): bool
     {
-        if ($this->username === null) {
+        if ($this->username == null || !$this->permissionRing <= 1) {
             return false;
         }
         return $this->conn->query("DELETE FROM voltphp_users_apikeys WHERE user_id = " . DBInstance::clean($this->data["user_id"]) . " AND key_id = '" . DBInstance::clean($key_id) . "';");
@@ -413,6 +418,9 @@ class User
      */
     public function delete(): bool
     {
+        if ($this->username == null || !$this->permissionRing <= 0) {
+            return false;
+        }
         // Start a transaction
         $this->conn->beginTransaction();
 
