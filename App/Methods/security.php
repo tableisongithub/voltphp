@@ -103,7 +103,7 @@ class User
      * @param string|null $loginKey The login key (password or token).
      * @param mode $mode The mode of operation.
      */
-    public function __construct($username, $loginKey, mode $mode)
+    public function __construct(?string $username, ?string $loginKey, mode $mode)
     {
         require_once ROOT . "/App/Methods/db.php";
 
@@ -196,7 +196,7 @@ class User
                 break;
 
         }
-        if ($this->loggedIn = true) {
+        if ($this->loggedIn) {
             $this->conn->query("UPDATE voltphp_users SET last_login = NOW() WHERE user_id = " . DBInstance::clean($this->data["user_id"]) . ";");
         }
     }
