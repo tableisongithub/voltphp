@@ -151,11 +151,11 @@ class Router
      * Registers a GET route.
      * 
      * @param string $uri The URI pattern for the route
-     * @param string $class The class containing the function to be executed
-     * @param string $function The function to be executed
+     * @param mixed $class The class containing the function to be executed. Or a callable function.
+     * @param string $function The function to be executed if previous parameter is a class.
      * @return Route
      */
-    public static function GET($uri, $class, $function, $parsedVariables = []): Route
+    public static function GET($uri, $class, $function = null, $parsedVariables = []): Route
     {
         return self::registerRoute('GET', $uri, $class, $function, $parsedVariables);
     }
@@ -164,11 +164,11 @@ class Router
      * Registers a POST route.
      * 
      * @param string $uri The URI pattern for the route
-     * @param string $class The class containing the function to be executed
-     * @param string $function The function to be executed
+     * @param mixed $class The class containing the function to be executed. Or a callable function.
+     * @param string $function The function to be executed if previous parameter is a class.
      * @return Route
      */
-    public static function POST($uri, $class, $function, $parsedVariables = []): Route
+    public static function POST($uri, $class, $function = null, $parsedVariables = []): Route
     {
         return self::registerRoute('POST', $uri, $class, $function, $parsedVariables);
     }
@@ -177,11 +177,11 @@ class Router
      * Registers a PUT route.
      * 
      * @param string $uri The URI pattern for the route
-     * @param string $class The class containing the function to be executed
-     * @param string $function The function to be executed
+     * @param mixed $class The class containing the function to be executed. Or a callable function.
+     * @param string $function The function to be executed if previous parameter is a class.
      * @return Route
      */
-    public static function PUT($uri, $class, $function, $parsedVariables = []): Route
+    public static function PUT($uri, $class, $function = null, $parsedVariables = []): Route
     {
         return self::registerRoute('PUT', $uri, $class, $function, $parsedVariables);
     }
@@ -190,11 +190,11 @@ class Router
      * Registers an OPTIONS route.
      * 
      * @param string $uri The URI pattern for the route
-     * @param string $class The class containing the function to be executed
-     * @param string $function The function to be executed
+     * @param mixed $class The class containing the function to be executed. Or a callable function.
+     * @param string $function The function to be executed if previous parameter is a class.
      * @return Route
      */
-    public static function OPTIONS($uri, $class, $function, $parsedVariables = []): Route
+    public static function OPTIONS($uri, $class, $function = null, $parsedVariables = []): Route
     {
         return self::registerRoute('OPTIONS', $uri, $class, $function, $parsedVariables);
     }
@@ -203,11 +203,11 @@ class Router
      * Registers a DELETE route.
      * 
      * @param string $uri The URI pattern for the route
-     * @param string $class The class containing the function to be executed
-     * @param string $function The function to be executed
+     * @param mixed $class The class containing the function to be executed. Or a callable function.
+     * @param string $function The function to be executed if previous parameter is a class.
      * @return Route
      */
-    public static function DELETE($uri, $class, $function, $parsedVariables = []): Route
+    public static function DELETE($uri, $class, $function = null, $parsedVariables = []): Route
     {
         return self::registerRoute('DELETE', $uri, $class, $function, $parsedVariables);
     }
@@ -216,11 +216,11 @@ class Router
      * Registers a HEAD route.
      * 
      * @param string $uri The URI pattern for the route
-     * @param string $class The class containing the function to be executed
-     * @param string $function The function to be executed
+     * @param mixed $class The class containing the function to be executed. Or a callable function.
+     * @param string $function The function to be executed if previous parameter is a class.
      * @return Route
      */
-    public static function HEAD($uri, $class, $function, $parsedVariables = []): Route
+    public static function HEAD($uri, $class, $function = null, $parsedVariables = []): Route
     {
         return self::registerRoute('HEAD', $uri, $class, $function, $parsedVariables);
     }
@@ -229,11 +229,11 @@ class Router
      * Registers a PATCH route.
      * 
      * @param string $uri The URI pattern for the route
-     * @param string $class The class containing the function to be executed
-     * @param string $function The function to be executed
+     * @param mixed $class The class containing the function to be executed. Or a callable function.
+     * @param string $function The function to be executed if previous parameter is a class.
      * @return Route
      */
-    public static function PATCH($uri, $class, $function, $parsedVariables = []): Route
+    public static function PATCH($uri, $class, $function = null, $parsedVariables = []): Route
     {
         return self::registerRoute('PATCH', $uri, $class, $function, $parsedVariables);
     }
@@ -242,11 +242,11 @@ class Router
      * Registers a CONNECT route.
      * 
      * @param string $uri The URI pattern for the route
-     * @param string $class The class containing the function to be executed
-     * @param string $function The function to be executed
+     * @param mixed $class The class containing the function to be executed. Or a callable function.
+     * @param string $function The function to be executed if previous parameter is a class.
      * @return Route
      */
-    public static function CONNECT($uri, $class, $function, $parsedVariables = []): Route
+    public static function CONNECT($uri, $class, $function = null, $parsedVariables = []): Route
     {
         return self::registerRoute('CONNECT', $uri, $class, $function, $parsedVariables);
     }
@@ -255,11 +255,11 @@ class Router
      * Registers a TRACE route.
      * 
      * @param string $uri The URI pattern for the route
-     * @param string $class The class containing the function to be executed
-     * @param string $function The function to be executed
+     * @param mixed $class The class containing the function to be executed. Or a callable function.
+     * @param string $function The function to be executed if previous parameter is a class.
      * @return Route
      */
-    public static function TRACE($uri, $class, $function, $parsedVariables = []): Route
+    public static function TRACE($uri, $class, $function = null, $parsedVariables = []): Route
     {
         return self::registerRoute('TRACE', $uri, $class, $function, $parsedVariables);
     }
@@ -353,7 +353,7 @@ class Router
         try {
             header("server: Voltphp");
             header("X-Powered-By: Voltphp");
-            header('Content-Type: application/json');
+            // header('Content-Type: application/json');
             echo json_encode(self::invoke($route['class'], $route['function'], $route['parsedVariables']));
         } catch (Exception $e) {
             require_once ROOT . '/resources/views/errors/500.php'; // Load a 500 error page if an exception occurs
@@ -369,6 +369,9 @@ class Router
      */
     private static function invoke($class, $function, $parsedVariables = [])
     {
+        if (is_callable($class)) {
+            return $class(...$parsedVariables);
+        }
         if (class_exists($class)) {
             $obj = new $class();
             if (method_exists($obj, $function)) {
