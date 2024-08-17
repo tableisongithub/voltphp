@@ -4,6 +4,9 @@
 
 VoltPHP is a high-performance, batteries-included PHP framework with modular database support, object-oriented design, and optional Docker support.
 
+We use UTF-8 for all of our files/methods. if you use something else, untold badness may befall your code. 
+"Just use iconv dude."
+    \- Literally every VoltPHP dev
 ## Features
 
 - **High Performance**: Designed for speed and efficiency.
