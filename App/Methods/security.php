@@ -1,5 +1,8 @@
 <?php
 //Made by VoltPHP. Do not touch!
+
+namespace App\Kernel\Security;
+
 if (!defined(ROOT)) {
     die("You have to define the ROOT constant in your public/index.php file. Use it like this: define('ROOT', __DIR__ . '/../');");
 }
@@ -9,6 +12,11 @@ if (empty($env)) {
 if ($env["DB_HOST"] == "" || $env["DB_PORT"] == "" || $env["DB_PASSWORD"] == "" || $env["DB_USER"] == "" || $env["DB_NAME"] == "") {
     die("Please make sure to fill in your database credentials in your .env file.");
 }
+
+
+use App\Kernel\db\MysqliInstance;
+use App\Kernel\db\PDOInstance;
+use App\Kernel\db\DBInstance;
 
 enum mode: int
 {
@@ -46,7 +54,7 @@ class User
                     return false;
                 }
                 $this->key = bin2hex(random_bytes(32));
-                $this->conn->query("UPDATE voltphp_users SET key = '{$this->key}' WHERE uuid = '{$this->data["uuid"]}';");
+                $this->conn->query("UPDATE voltphp_users SET key = '{$this->key}' WHERE uuid = ".DBInstance::clean($this->data["uuid"]).";");
                 break;
             case mode::TOKEN:
                 if (!$this->checkToken($loginKey)) {
@@ -64,10 +72,10 @@ class User
                     return false;
                 }
                 $this->key = bin2hex(random_bytes(32));
-                $this->conn->query("UPDATE voltphp_users SET key = '{$this->key}' WHERE uuid = '{$this->data["uuid"]}';");
+                $this->conn->query("UPDATE voltphp_users SET key = '{$this->key}' WHERE uuid = ".DBInstance::clean($this->data["uuid"]).";");
                 return false;
         }
-        $this->conn->query("UPDATE voltphp_users SET last_login = NOW() WHERE uuid = '{$this->data["uuid"]}';");
+        $this->conn->query("UPDATE voltphp_users SET last_login = NOW() WHERE uuid = ".DBInstance::clean($this->data["uuid"]).";");
     }
 
     public static function login($username, $password)
@@ -99,7 +107,7 @@ class User
 
     private function setUsername($username)
     {
-        $result = $this->conn->query("SELECT * FROM voltphp_users WHERE username = '$username'");
+        $result = $this->conn->query("SELECT * FROM voltphp_users WHERE username = ".DBInstance::clean($username).";");
         if ($result && count($result) > 0) {
             $this->data = $result[0];
             $this->username = $this->data["username"];

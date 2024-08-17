@@ -1,6 +1,8 @@
 <?php
 //Made by VoltPHP. Do not touch!
 
+namespace App\Kernel\db;
+
 
 class DB
 {
@@ -80,6 +82,31 @@ abstract class DBInstance
      * @return mixed Returns the result of the unsafe query execution.
      */
     abstract protected function unsafeQuery(string $query): mixed;
+
+    /**
+     * Centralized clean function to sanitize input.
+     * This function will escape potentially harmful characters for SQL queries.
+     *
+     * @param mixed $data The data to be sanitized
+     * @param string $encoding The encoding to use for sanitization. Default is UTF-8.
+     * @return mixed The sanitized data, returns null on failure or bad encoding.
+     */
+    public static function clean($data, $encoding = 'UTF-8'): mixed
+    {
+        if (is_array($data)) {
+            foreach ($data as &$value) {
+                $value = self::clean($value, $encoding);
+            }
+            return $data;
+        } else {
+            $sanitizedData = htmlspecialchars($data, ENT_QUOTES, $encoding);
+            if ($sanitizedData === false) {
+                trigger_error("Failed to sanitize input data.", E_WARNING);
+                return null;
+            }
+            return $sanitizedData;
+        }
+    }
 }
 
 
@@ -250,27 +277,27 @@ class PDOInstance extends DBInstance
      * @return mixed Returns the result of the query execution or false if the query fails.
      */
     public function unsafeQuery(string $query): mixed
-{
-    try {
-        $stmt = $this->connection->query($query);
-        $rows = [];
-        if ($stmt === true) {
-            return true;
-        }
-        $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        if (count($result) === 1) {
-            $rows[0] = $result[0];
-            return $rows;
-        } else {
-            foreach ($result as $row) {
-                $rows[] = $row;
+    {
+        try {
+            $stmt = $this->connection->query($query);
+            $rows = [];
+            if ($stmt === true) {
+                return true;
             }
-            return $rows;
+            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            if (count($result) === 1) {
+                $rows[0] = $result[0];
+                return $rows;
+            } else {
+                foreach ($result as $row) {
+                    $rows[] = $row;
+                }
+                return $rows;
+            }
+        } catch (PDOException $e) {
+            throw new Exception("PDO Error: " . $e->getMessage());
         }
-    } catch (PDOException $e) {
-        throw new Exception("PDO Error: " . $e->getMessage());
     }
-}
 
     /**
      * Terminates the database connection.
