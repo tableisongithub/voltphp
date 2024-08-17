@@ -93,8 +93,8 @@ class MysqliInstance extends DBInstance
      * @param string $schema The SQL query used to create tables.
      * @param array $credentials An associative array containing the database connection credentials.
      *   Format: ['host' => 'host:port', 'username' => '', 'password' => '', 'database' => '']
-     * @throws Exception Throws an exception if the MySQLi extension is not loaded.
      * @param bool $unsafe An optional flag to disable safety checks.
+     * @throws Exception Throws an exception if the MySQLi extension is not loaded.
      */
     public function __construct(string $schema, array $credentials, bool $unsafe = false)
     {
@@ -133,12 +133,25 @@ class MysqliInstance extends DBInstance
      *
      *
      * @param string $query The SQL query to be executed.
-     * @return void
+     * @return mixed Returns either a bool orn an array of associative arrays.
+     * If the result only had one line, access it in result[0]["data"]
      */
     public function unsafeQuery(string $query): mixed
     {
         try {
-            return $this->connection->query($query);
+            $result = $this->connection->query($query);
+            $rows = [];
+            if ($result === true) {
+                return true;
+            } elseif ($result->num_rows === 1) {
+                $rows[0] = $result->fetch_assoc();
+                return $rows;
+            } else {
+                while ($row = $result->fetch_assoc()) {
+                    $rows[] = $row;
+                }
+                return $rows;
+            }
         } catch (mysqli_sql_exception $e) {
             throw new Exception("MySQLi Error: " . $e->getMessage());
         }
@@ -237,15 +250,27 @@ class PDOInstance extends DBInstance
      * @return mixed Returns the result of the query execution or false if the query fails.
      */
     public function unsafeQuery(string $query): mixed
-    {
-        try {
-            $stmt = $this->connection->query($query);
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
-        } catch (PDOException $e) {
-            echo "Query failed: " . $e->getMessage();
-            return false;
+{
+    try {
+        $stmt = $this->connection->query($query);
+        $rows = [];
+        if ($stmt === true) {
+            return true;
         }
+        $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        if (count($result) === 1) {
+            $rows[0] = $result[0];
+            return $rows;
+        } else {
+            foreach ($result as $row) {
+                $rows[] = $row;
+            }
+            return $rows;
+        }
+    } catch (PDOException $e) {
+        throw new Exception("PDO Error: " . $e->getMessage());
     }
+}
 
     /**
      * Terminates the database connection.

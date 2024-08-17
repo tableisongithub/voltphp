@@ -1,8 +1,8 @@
 <?php
 //Made by VoltPHP. Do not touch!
 $dbext = "";
-if (version_compare(phpversion(), '8', '<')) {
-    die("VoltPHP requires PHP 8 or higher.");
+if (version_compare(phpversion(), '8.1.0', '<')) {
+    die("VoltPHP requires PHP 8.1.0 or higher.");
 }
 if (!extension_loaded('mysqli')) {
     trigger_error('The MySQLi extension is not loaded. This might not be a bug if you use something else.', E_WARNING);
