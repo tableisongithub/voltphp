@@ -15,6 +15,6 @@ CREATE TABLE IF NOT EXISTS voltphp_users_apikeys
     user_id     BIGINT,
     `key`       VARCHAR(255),
     key_id      BIGINT AUTO_INCREMENT,
-    permissions BIGINT,
+    permissions TEXT,
     PRIMARY KEY (user_id, key_id)
 );
