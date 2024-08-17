@@ -370,7 +370,7 @@ class User
      * @return array|false An associative array with 'key_id' and 'key' on success, or false on failure.
      * @throws RandomException If the random bytes generation fails.
      */
-    public function addApiKey(string $prefix): false|array
+    public function addApiKey(string $permissions, string $prefix = ""): false|array
     {
         if ($this->username == null || !$this->permissionRing <= 1) {
             return false;
@@ -378,7 +378,7 @@ class User
 
         $apiKey = DBInstance::clean($prefix) . bin2hex(random_bytes(64));
 
-        $query = "INSERT INTO voltphp_users_apikeys (user_id, `key`) VALUES (" . DBInstance::clean($this->data["user_id"]) . ", '" . $apiKey . "');";
+        $query = "INSERT INTO voltphp_users_apikeys (user_id, `key`, permissions) VALUES (" . DBInstance::clean($this->data["user_id"]) . ", '" . $apiKey . "',".DBInstance::clean($permissions)."');";
 
         if ($this->conn->query($query)) {
             $result = $this->conn->query("SELECT key FROM voltphp_users_apikeys WHERE user_id = " . DBInstance::clean($this->data["user_id"]) . " AND `key` = '" . DBInstance::clean($apiKey) . "';");
