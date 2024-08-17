@@ -107,6 +107,13 @@ abstract class DBInstance
             return $sanitizedData;
         }
     }
+
+    abstract protected function beginTransaction(): bool;
+
+    abstract protected function commit(): bool;
+
+    abstract protected function rollback(): bool;
+
 }
 
 
@@ -223,6 +230,36 @@ class MysqliInstance extends DBInstance
             return true;
         }
     }
+
+    /**
+     * Begins a transaction.
+     *
+     * @return bool Returns true if the transaction is successfully started, false otherwise.
+     */
+    public function beginTransaction(): bool
+    {
+        return $this->connection->begin_transaction();
+    }
+
+    /**
+     * Commits the current transaction.
+     *
+     * @return bool Returns true if the transaction is successfully committed, false otherwise.
+     */
+    public function commit(): bool
+    {
+        return $this->connection->commit();
+    }
+
+    /**
+     * Rolls back the current transaction.
+     *
+     * @return bool Returns true if the transaction is successfully rolled back, false otherwise.
+     */
+    public function rollback(): bool
+    {
+        return $this->connection->rollback();
+    }
 }
 
 class PDOInstance extends DBInstance
@@ -337,5 +374,35 @@ class PDOInstance extends DBInstance
         } else {
             return true;
         }
+    }
+
+    /**
+     * Begins a transaction.
+     *
+     * @return bool Returns true if the transaction is successfully started, false otherwise.
+     */
+    public function beginTransaction(): bool
+    {
+        return $this->connection->beginTransaction();
+    }
+
+    /**
+     * Commits the current transaction.
+     *
+     * @return bool Returns true if the transaction is successfully committed, false otherwise.
+     */
+    public function commit(): bool
+    {
+        return $this->connection->commit();
+    }
+
+    /**
+     * Rolls back the current transaction.
+     *
+     * @return bool Returns true if the transaction is successfully rolled back, false otherwise.
+     */
+    public function rollback(): bool
+    {
+        return $this->connection->rollBack();
     }
 }
