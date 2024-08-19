@@ -65,7 +65,7 @@ abstract class DBInstance
      * @param string $query The SQL query to be executed.
      * @return mixed Returns the result of the query execution.
      */
-    public function query(string $query): mixed
+    final public function query(string $query): mixed
     {
         if (!$this->tables()) {
             if ($this->unsafe) {
@@ -90,7 +90,7 @@ abstract class DBInstance
  * @param mixed $data The data to be sanitized, either a string or an array of strings.
  * @return mixed The sanitized data with special characters escaped.
  */
-public function clean($data)
+final public function clean($data)
 {
     if (is_array($data)) {
         foreach ($data as &$value) {
