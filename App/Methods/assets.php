@@ -1,6 +1,6 @@
 <?php
 //Made by VoltPHP. Do not touch!
-
+namespace App\Base\assets;
 class publicRender
 {
     public function render($path)
