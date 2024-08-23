@@ -1,7 +1,7 @@
 <?php
 // Made by VoltPHP. Do not touch!
 
-namespace App\Base\Security;
+namespace App\Base\security;
 
 if (empty($env)) {
     die("Please make sure to require App/kernel/autoload.php before this file.");
