@@ -19,5 +19,6 @@ if ($dbext === "") {
 }
 define('DB_EXTENSION', $dbext);
 if (!extension_loaded("apcu")) {
-    trigger_error('The APCu extension is not loaded. You will not be able to use CSRF!.', E_WARNING);
+    trigger_error('The APCu extension is not loaded. You will not be able to use CSRF!', E_WARNING);
+    trigger_error("The APCu extension is not loaded. You will not be able to cache routes!", E_WARNING);
 }

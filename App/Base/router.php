@@ -1,414 +1,194 @@
 <?php
 
 namespace App\Base\router;
+
+use Exception;
+
 error_reporting(E_ALL & ~E_WARNING); // Suppress warnings for a cleaner output
 // For debugging purposes:
 // ini_set('display_errors', 1); // Enable error display
 // ini_set('display_startup_errors', 1); // Enable startup errors display
 // error_reporting(E_ALL); // Show all errors, including warnings
 
-class Route
-{
-    private $method;
-    private $uri;
-
-    public function __construct($method, $uri)
-    {
-        $this->method = $method;
-        $this->uri = $uri;
-    }
-    /**
-     * Assigns a prefix to the route, allowing middleware to identify and use it.
-     * 
-     * @param string $prefix The prefix to be assigned to the route
-     * @return void
-     */
-    public function name($prefix)
-    {
-        Router::$prefixedRoutes[$prefix] = [
-            'method' => $this->method,
-            'uri' => $this->uri
-        ];
-    }
-}
-class FunctionClass
-{
-    private $name;
-    private $function;
-
-    /**
-     * Sets the name for the function to be registered.
-     * 
-     * @param string $name The name to be assigned to the function
-     * @return FunctionClass
-     */
-    public function name($name)
-    {
-        $this->name = $name;
-        return $this;
-    }
-
-    /**
-     * Sets the callable function to be registered.
-     * 
-     * @param callable $function The function to be registered
-     * @return FunctionClass
-     */
-    public function function($function)
-    {
-        $this->function = $function;
-        return $this;
-    }
-
-    /**
-     * Registers the function with the Router using the defined name.
-     * 
-     * @return void
-     */
-    public function register()
-    {
-        $funcWithParsedVariables = function (...$parsedVariables) {
-            return call_user_func($this->function, ...$parsedVariables);
-        };
-        Router::$functions[$this->name] = $funcWithParsedVariables
-            ?? function () {
-                throw new Exception('Function not defined');
-            };
-    }
-}
-
-class Middleware
-{
-    private $funcs;
-    private $inverted = false;
-    private $parsedVariables;
-
-    /**
-     * Middleware constructor to initialize the middleware functions.
-     * 
-     * @param array $funcs An array of function prefixes that will be executed as middleware
-     */
-    public function __construct($funcs, $parsedVariables = [])
-    {
-        $this->funcs = $funcs;
-        $this->parsedVariables = $parsedVariables;
-    }
-
-    /**
-     * Inverts the middleware functions, executing the callback function if any middleware function fails.
-     * 
-     * @return Middleware
-     */
-    public function invert(): Middleware
-    {
-        $this->inverted = true;
-        return $this;
-    }
-
-    /**
-     * Executes the middleware functions in sequence and then runs the provided callback function.
-     * 
-     * @param callable $callbackfunc The function to be executed if all middleware functions succeed
-     * @return void
-     */
-    public function group($callbackfunc)
-    {
-        foreach ($this->funcs as $func) {
-            try {
-                Router::invokeByPrefix($func, false);
-            } catch (Exception $e) {
-                if ($this->inverted) call_user_func($callbackfunc, ...$this->parsedVariables);
-                return;
-            }
-        }
-        if (!$this->inverted) call_user_func($callbackfunc);
-    }
-}
-
 class Router
 {
+    /**
+     * Array to hold all registered routes.
+     *
+     * @var array
+     */
     private static $routes = [];
-    public static $prefixedRoutes = [];
-    public static $middleware = [];
-    public static $functions = [];
-    private static $handlingRequest = false;
+
+    /**
+     * The cache key used for storing routes in APCu.
+     *
+     * @var string
+     */
+    private static string $cacheKey = 'routes_cache';
+
+    /**
+     * Array to hold middleware functions.
+     *
+     * @var array
+     */
+    private static array $middleware = [];
+
+    /**
+     * Fallback function to be executed if no route matches.
+     *
+     * @var callable|null
+     */
     private static $fallback = null;
 
     /**
-     * Registers a route with the specified HTTP method, URI, class, and function.
-     * 
-     * @param string $method The HTTP method for the route (e.g., GET, POST)
-     * @param string $uri The URI pattern for the route
-     * @param string $class The class containing the function to be executed
-     * @param string $function The function to be executed
-     * @return Route
+     * Initializes the router by attempting to load cached routes from APCu.
+     * If the routes are cached, the script will exit early.
+     * If APCu is not available, it proceeds to route registration.
+     *
+     * @return bool Whether the cached routes were loaded and solved successfully.
      */
-    private static function registerRoute($method, $uri, $class, $function, $parsedVariables): Route
+    public static function init(): bool
     {
-        self::$routes[$method][$uri] = compact('class', 'function', 'parsedVariables');
-        return new Route($method, $uri);
+        try {
+            $cachedRoutes = apcu_fetch(self::$cacheKey);
+            if ($cachedRoutes) {
+                self::$routes = unserialize($cachedRoutes);
+                self::executeRoutes();
+                return true;
+            }
+        } catch (Exception $e) {
+            // APCu is not available, proceed without caching
+        }
+        return false;
     }
 
     /**
      * Registers a GET route.
-     * 
-     * @param string $uri The URI pattern for the route
-     * @param mixed $class The class containing the function to be executed. Or a callable function.
-     * @param string $function The function to be executed if previous parameter is a class.
-     * @return Route
+     *
+     * @param string $uri The URI pattern for the route.
+     * @param callable $callback The function to be executed for the route.
+     * @return void
      */
-    public static function GET($uri, $class, $function = null, $parsedVariables = []): Route
+    public static function GET(string $uri, callable $callback): void
     {
-        return self::registerRoute('GET', $uri, $class, $function, $parsedVariables);
+        self::addRoute('GET', $uri, $callback);
     }
 
     /**
      * Registers a POST route.
-     * 
-     * @param string $uri The URI pattern for the route
-     * @param mixed $class The class containing the function to be executed. Or a callable function.
-     * @param string $function The function to be executed if previous parameter is a class.
-     * @return Route
+     *
+     * @param string $uri The URI pattern for the route.
+     * @param callable $callback The function to be executed for the route.
+     * @return void
      */
-    public static function POST($uri, $class, $function = null, $parsedVariables = []): Route
+    public static function POST(string $uri, callable $callback): void
     {
-        return self::registerRoute('POST', $uri, $class, $function, $parsedVariables);
+        self::addRoute('POST', $uri, $callback);
     }
 
     /**
      * Registers a PUT route.
-     * 
-     * @param string $uri The URI pattern for the route
-     * @param mixed $class The class containing the function to be executed. Or a callable function.
-     * @param string $function The function to be executed if previous parameter is a class.
-     * @return Route
+     *
+     * @param string $uri The URI pattern for the route.
+     * @param callable $callback The function to be executed for the route.
+     * @return void
      */
-    public static function PUT($uri, $class, $function = null, $parsedVariables = []): Route
+    public static function PUT(string $uri, callable $callback): void
     {
-        return self::registerRoute('PUT', $uri, $class, $function, $parsedVariables);
-    }
-
-    /**
-     * Registers an OPTIONS route.
-     * 
-     * @param string $uri The URI pattern for the route
-     * @param mixed $class The class containing the function to be executed. Or a callable function.
-     * @param string $function The function to be executed if previous parameter is a class.
-     * @return Route
-     */
-    public static function OPTIONS($uri, $class, $function = null, $parsedVariables = []): Route
-    {
-        return self::registerRoute('OPTIONS', $uri, $class, $function, $parsedVariables);
+        self::addRoute('PUT', $uri, $callback);
     }
 
     /**
      * Registers a DELETE route.
-     * 
-     * @param string $uri The URI pattern for the route
-     * @param mixed $class The class containing the function to be executed. Or a callable function.
-     * @param string $function The function to be executed if previous parameter is a class.
-     * @return Route
-     */
-    public static function DELETE($uri, $class, $function = null, $parsedVariables = []): Route
-    {
-        return self::registerRoute('DELETE', $uri, $class, $function, $parsedVariables);
-    }
-
-    /**
-     * Registers a HEAD route.
-     * 
-     * @param string $uri The URI pattern for the route
-     * @param mixed $class The class containing the function to be executed. Or a callable function.
-     * @param string $function The function to be executed if previous parameter is a class.
-     * @return Route
-     */
-    public static function HEAD($uri, $class, $function = null, $parsedVariables = []): Route
-    {
-        return self::registerRoute('HEAD', $uri, $class, $function, $parsedVariables);
-    }
-
-    /**
-     * Registers a PATCH route.
-     * 
-     * @param string $uri The URI pattern for the route
-     * @param mixed $class The class containing the function to be executed. Or a callable function.
-     * @param string $function The function to be executed if previous parameter is a class.
-     * @return Route
-     */
-    public static function PATCH($uri, $class, $function = null, $parsedVariables = []): Route
-    {
-        return self::registerRoute('PATCH', $uri, $class, $function, $parsedVariables);
-    }
-
-    /**
-     * Registers a CONNECT route.
-     * 
-     * @param string $uri The URI pattern for the route
-     * @param mixed $class The class containing the function to be executed. Or a callable function.
-     * @param string $function The function to be executed if previous parameter is a class.
-     * @return Route
-     */
-    public static function CONNECT($uri, $class, $function = null, $parsedVariables = []): Route
-    {
-        return self::registerRoute('CONNECT', $uri, $class, $function, $parsedVariables);
-    }
-
-    /**
-     * Registers a TRACE route.
-     * 
-     * @param string $uri The URI pattern for the route
-     * @param mixed $class The class containing the function to be executed. Or a callable function.
-     * @param string $function The function to be executed if previous parameter is a class.
-     * @return Route
-     */
-    public static function TRACE($uri, $class, $function = null, $parsedVariables = []): Route
-    {
-        return self::registerRoute('TRACE', $uri, $class, $function, $parsedVariables);
-    }
-
-    /**
-     * Sets a fallback route to be executed when no other routes match.
-     * 
-     * @param string $path The path for the fallback route
-     * @param callable $function The function to be executed for the fallback route
+     *
+     * @param string $uri The URI pattern for the route.
+     * @param callable $callback The function to be executed for the route.
      * @return void
      */
-    public static function fallback($path, $function)
+    public static function DELETE($uri, callable $callback)
     {
-        self::$fallback = compact('path', 'function');
+        self::addRoute('DELETE', $uri, $callback);
     }
 
     /**
-     * Creates a Middleware instance with the given function prefixes.
-     * 
-     * @param array $funcs An array of function prefixes to be used as middleware
-     * @return Middleware
-     */
-    public static function middleware($funcs)
-    {
-        return new Middleware($funcs);
-    }
-
-    /**
-     * Creates a FunctionClass instance for registering functions with the Router.
-     * 
-     * @return FunctionClass
-     */
-    public static function functionRegister()
-    {
-        return new FunctionClass();
-    }
-
-    /**
-     * Handles the incoming request, executes the matching route, or falls back to the fallback route if no match is found.
-     * To disable automatic request handling, set Router::$handleRequestOnExit to false.
-     * 
+     * Adds a route to the internal routes array.
+     *
+     * @param string $method The HTTP method for the route (GET, POST, etc.).
+     * @param string $uri The URI pattern for the route.
+     * @param callable $callback The function to be executed for the route.
      * @return void
      */
-    public static function handleRequest()
+    private static function addRoute($method, $uri, callable $callback)
     {
-        if (self::$handlingRequest) {
-            return;
-        }
-        self::$handlingRequest = true;
+        self::$routes[$method][$uri] = $callback;
+    }
+
+    /**
+     * Registers a fallback function to be executed if no route matches.
+     *
+     * @param callable $callback The fallback function to be executed.
+     * @return void
+     */
+    public static function fallback(callable $callback): void
+    {
+        self::$fallback = $callback;
+    }
+
+    /**
+     * Executes the matched route based on the current request URI and method.
+     * If the route is found, it is executed; otherwise, the fallback is handled.
+     * After executing routes, they are cached in APCu if available.
+     *
+     * @return void
+     */
+    public static function executeRoutes(): void
+    {
         $method = $_SERVER['REQUEST_METHOD'];
         $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-        $route = self::$routes[$method][$uri] ?? self::matchWildcardRoute($method, $uri);
+
+        foreach (self::$middleware as $middleware) {
+            call_user_func($middleware);
+        }
+
+        $route = self::$routes[$method][$uri] ?? null;
 
         if ($route) {
-            self::executeRoute($route);
+            call_user_func($route);
         } elseif (self::$fallback) {
-            call_user_func(self::$fallback['function'], self::$fallback['path']);
+            call_user_func(self::$fallback);
         } else {
-            require_once ROOT . '/resources/views/errors/404.php'; // Load a 404 error page if no route or fallback is found
+            require ROOT . "resources/views/errors/404.php";
+        }
+
+        try {
+            apcu_store(self::$cacheKey, serialize(self::$routes));
+        } catch (Exception $e) {
         }
     }
 
     /**
-     * Matches a route with wildcard patterns to the incoming URI.
-     * 
-     * @param string $method The HTTP method of the route
-     * @param string $uri The URI of the incoming request
-     * @return array|null The matched route or null if no match is found
-     */
-    private static function matchWildcardRoute($method, $uri)
-    {
-        foreach (self::$routes[$method] as $routeUri => $route) {
-            if (strpos($routeUri, '*') !== false) {
-                $pattern = str_replace('*', '.*', $routeUri);
-                if (preg_match("#^$pattern$#", $uri)) {
-                    return $route;
-                }
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Executes the route by calling the specified class and function.
-     * 
-     * @param array $route The route containing class and function to be executed
+     * Registers middleware to be executed before any route.
+     *
+     * @param callable $middleware The middleware function to be executed.
      * @return void
      */
-    private static function executeRoute($route)
+    public static function addMiddleware(callable $middleware): void
+    {
+        self::$middleware[] = $middleware;
+    }
+
+
+    /**
+     * Clears the route cache stored in APCu.
+     *
+     * @return void
+     */
+    public static function clearCache(): void
     {
         try {
-            header("server: Voltphp");
-            header("X-Powered-By: Voltphp");
-            // header('Content-Type: application/json');
-            echo json_encode(self::invoke($route['class'], $route['function'], $route['parsedVariables']));
+            apcu_delete(self::$cacheKey);
         } catch (Exception $e) {
-            require_once ROOT . '/resources/views/errors/500.php'; // Load a 500 error page if an exception occurs
-        }
-    }
-
-    /**
-     * Instantiates the class and invokes the specified function.
-     * 
-     * @param string $class The class containing the function to be executed
-     * @param string $function The function to be invoked
-     * @return mixed The result of the function execution
-     */
-    private static function invoke($class, $function, $parsedVariables = [])
-    {
-        if (is_callable($class)) {
-            return $class(...$parsedVariables);
-        }
-        if (class_exists($class)) {
-            $obj = new $class();
-            if (method_exists($obj, $function)) {
-                return $obj->$function(...$parsedVariables);
-            }
-        }
-        require_once ROOT . '/resources/views/errors/500.php'; // Load a 500 error page if class or method does not exist
-    }
-
-    /**
-     * Invokes a function based on its prefix, checking for prefixed routes if needed.
-     * 
-     * @param string $prefix The prefix of the function to be executed
-     * @return mixed The result of the function execution
-     */
-    public static function invokeByPrefix($prefix, $pageInvoked = true)
-    {
-        if (isset(self::$functions[$prefix])) {
-            return call_user_func(self::$functions[$prefix]);
-        }
-
-        $prefixedRoute = self::$prefixedRoutes[$prefix] ?? null;
-        if ($prefixedRoute) {
-            $method = $prefixedRoute['method'];
-            $uri = $prefixedRoute['uri'];
-            $route = self::$routes[$method][$uri] ?? self::matchWildcardRoute($method, $uri);
-
-            if ($route) {
-                return self::invoke($route['class'], $route['function']);
-            }
-        }
-        if ($pageInvoked) {
-            require_once ROOT . '/resources/views/' . ($prefixedRoute ? 'errors/500.php' : 'errors/404.php'); // Load error pages as appropriate
-        } else {
-            throw new Exception('Function not found');
+            // Handle the case where APCu is not available
         }
     }
 }
