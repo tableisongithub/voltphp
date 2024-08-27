@@ -51,8 +51,12 @@ class Router
     {
         try {
             $cachedRoutes = apcu_fetch(self::$cacheKey);
+            $cachedMiddleware = apcu_fetch(self::$cacheKey . '_middleware');
+            $fallback = apcu_fetch(self::$cacheKey . '_fallback');
             if ($cachedRoutes) {
                 self::$routes = unserialize($cachedRoutes);
+                self::$middleware = unserialize($cachedMiddleware);
+                self::$fallback = unserialize($fallback);
                 self::executeRoutes();
                 return true;
             }
@@ -162,6 +166,8 @@ class Router
 
         try {
             apcu_store(self::$cacheKey, serialize(self::$routes));
+            apcu_store(self::$cacheKey . '_middleware', serialize(self::$middleware));
+            apcu_store(self::$cacheKey . "_fallback", serialize(self::$fallback));
         } catch (Exception $e) {
         }
     }
