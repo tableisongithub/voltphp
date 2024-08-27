@@ -17,7 +17,7 @@ class Router
      *
      * @var array
      */
-    private static $routes = [];
+    private static array $routes = [];
 
     /**
      * The cache key used for storing routes in APCu.
