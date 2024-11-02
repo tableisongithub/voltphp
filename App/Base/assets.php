@@ -1,5 +1,5 @@
 <?php
-//Made by VoltPHP. Do not touch!
+//Made by VoltPHP. Do not touch! ABCD
 namespace App\Base\assets;
 class publicRender
 {
